@@ -3,7 +3,7 @@ class guierrs():
 	class InvailidArgument(Exception): ...
 
 #Prepeare log file
-with open("gui.log","w+") as fle: fle.write("### Log of GUI for Bibilothek project")
+with open("gui.log","w+") as fle: fle.write("Log of GUI for Bibilothek project\n")
 
 def log(src:str,tpe:str,txt:str): #Log function for GUI functions
 	clr = "31" if tpe.lower() in ("err","error","fatal") else "32" if tpe.lower() in ("okay") else "33" if tpe.lower() in ("warn","warning") else "36" if tpe.lower() in ("info") else "34" if tpe.lower() in ("debug") else "0"
@@ -12,7 +12,7 @@ def log(src:str,tpe:str,txt:str): #Log function for GUI functions
 	try:
 		with open("gui.log","a") as fle:
 			#fle.write(f"<span style='color:{mdclr}>**[GUI/{src}]** *{tpe.upper()}*: {txt}</span>\n")
-			fle.write(f"GUI/{src}] {tpe.upper()}: {txt}")
+			fle.write(f"GUI/{src}] {tpe.upper()}: {txt}\n")
 	except: pass
 
 from tkinter import *
