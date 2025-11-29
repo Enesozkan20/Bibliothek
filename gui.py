@@ -21,7 +21,7 @@ try: import database as db
 except: log("import","warn","Could not find module database.py")
 
 class guivars(): #Variables & Widgets of GUI
-	test = True
+	test = False
 	class pages():
 		pages_tp = {"Bücher verwalten":"manageBooks","Schüler verwalten":"managePupils","Meldungen":"Alerts"}
 		pages_pt = {"manageBooks":"Bücher verwalten","managePupils":"Schüler verwalten","Alerts":"Meldungen"}
@@ -31,10 +31,12 @@ class guivars(): #Variables & Widgets of GUI
 		defsize = []
 		class manageBooks(): ...
 		class managePupils(): ...
+		class alerts(): ...
 	class elements():
 		class general(): ...
 		class manageBooks(): ...
 		class managePupils(): ...
+		class alerts(): ...
 
 class guicmds(): #Commands of GUI
 	def test(*args,**kwargs): print(f"Test proceed {args} {kwargs}")
@@ -44,11 +46,11 @@ class guicmds(): #Commands of GUI
 			log("guicmds.general.change_page","info",f"Changing page of GUI to '{guivars.elements.general.navigation.get()}' (Internal adress is '{guivars.pages.pages_tp[guivars.elements.general.navigation.get()]}')")
 			for frm in guivars.frames.pages:
 				frm.grid_forget()
-			guivars.frames.pages[guivars.pages.pages_tlst.index(guivars.elements.general.navigation.get())].grid(row=1,column=0,pady=4)
+			guivars.frames.pages[guivars.pages.pages_tlst.index(guivars.elements.general.navigation.get())].grid(row=1,column=0,columnspan=11,pady=4)
 			guivars.pages.currentpage = guivars.pages.pages_tp[guivars.elements.general.navigation.get()]
 		
 		def reload_widget(event): #Reload specified widget on page
-			actlst = {"manageBooks":guicmds.manageBooks.list_searched_books,"managePupils":guicmds.managePupils.getPupils}
+			actlst = {"manageBooks":guicmds.manageBooks.list_searched_books,"managePupils":guicmds.managePupils.getPupils,"Alerts":guicmds.alerts.getAlerts}
 			try: actlst[guivars.pages.currentpage]()
 			except Exception as exc:
 				log("guicmds.general.reload_list","warn",f"Failed to reload specified widget on page '{guivars.pages.currentpage}' ({exc})")
@@ -97,6 +99,33 @@ class guicmds(): #Commands of GUI
 			except Exception as exc:
 				log("guicmds.managePupils.getPupils","error",f"Search for pupils failed ({exc})")
 				guivars.elements.managePupils.searchresults.insert("","end",values=("None","None","None"))
+	
+	class alerts():
+		def getAlerts():
+			log("guicmds.alerts.getAlerts","info","Loading alerts...")
+			try:
+				guivars.elements.alerts.alerts.delete(0,END)
+				if guivars.test:
+					tstlst = []
+					for i in range(200): tstlst.append(f"Test alert number {i}")
+					for elm in tstlst: guivars.elements.alerts.alerts.insert(END,f"> {elm}")
+				log("guicmds.alerts.getAlerts","okay","Alerts loaded into Listbox")
+			except Exception as exc:
+				log("guicmds.alerts.getAlerts","error",f"Loading alerts failed ({exc})")
+				guivars.elements.alerts.alerts.insert(END,"> Failed to load alerts!")
+		
+		def getAlertsAmt():
+			log("guicmds.alerts.getAlertsAmt","info","Loading amount of alerts...")
+			try:
+				if guivars.test:
+					tstlst = []
+					for i in range(200): tstlst.append(f"Test alert number {i}")
+					log("guicmds.alerts.getAlertsAmt","okay",f"Amount of alerts loaded ({len(tstlst)})")
+					return len(tstlst)
+			except Exception as exc:
+				log("guicmds.alerts.getAlertsAmt","error",f"Loading amount of alerts failed ({exc})")
+			return 0
+				
 
 class guiutils(): #Useful functions for GUI
 	def get_page_frm(pn="",pa=""):
@@ -147,7 +176,7 @@ def init_gui(title="Bücherverwaltung"):
 
 	#set Title of window
 	log("init_gui","info","Setting title")
-	guivars.win.title(title if not guivars.test else title + " (Test)") #Configure title of window, but if test mode is active, add "(Test)" and the end
+	guivars.win.title(title if not guivars.test else title + " (Test mode active)") #Configure title of window, but if test mode is active, add "(Test)" and the end
 	if guivars.test: log("init_gui","warn","This program currently runs in 'test' Mode (resulting in faked databases, etc.)")
 
 	#Create Tk Win content frames
@@ -169,6 +198,8 @@ def init_gui(title="Bücherverwaltung"):
 	guivars.elements.general.navigation.bind("<<ComboboxSelected>>",guicmds.general.change_page) #On every change of selection, change the GUI page
 	guivars.elements.general.navigation.current(0) #Set current selection to first page text
 	guivars.elements.general.navigation.grid(row=0,column=0,sticky="W")
+	guivars.elements.general.info_lbl = Label(guivars.frames.top,text="")
+	guivars.elements.general.info_lbl.grid(row=0,column=1,columnspan=10,sticky="W")
 	
 	#Generate frames for GUI
 	log("init_gui","info","Generating Frames for Pages")
@@ -266,8 +297,28 @@ def init_gui(title="Bücherverwaltung"):
 
 	log("init_gui","okay","Page 'managePupils' configured")
 	
+	#Configure content widgets for page "Alerts"
+	log("init_gui","info","Configuring widgets for page 'Alerts'")
+	p = guiutils.get_page_frm(pa="Alerts")
+	p.grid_columnconfigure(0,weight=5)
+	guivars.frames.alerts.alertsList = Frame(p,bg="lightgray",relief="raised",bd=4) #Frame for Book search
+	guivars.frames.alerts.alertsList.grid(row=0,column=0,rowspan=60)
+	
+	log("init_gui","info","Configuring widgets for alert list frame on page 'Alerts'")
+	guivars.elements.alerts.title = Label(guivars.frames.alerts.alertsList,text="Meldungen",font=("Monospace",18),fg="blue")
+	guivars.elements.alerts.title.grid(row=0,column=0,columnspan=4,sticky="W")
+	guivars.elements.alerts.reload_btn = Button(guivars.frames.alerts.alertsList,text="Aktualisiere Liste (F6)",command=guicmds.alerts.getAlerts)
+	guivars.elements.alerts.reload_btn.grid(row=1,column=0,columnspan=4,sticky="W",pady=2)
+	guivars.elements.alerts.alerts = Listbox(guivars.frames.alerts.alertsList,width=100,height=20,fg="red")
+	guivars.elements.alerts.sr_scrollbar = ttk.Scrollbar(guivars.elements.alerts.alerts,orient="vertical",command=guivars.elements.alerts.alerts.yview)
+	guivars.elements.alerts.sr_scrollbar.place(x=790,y=0,height=400)
+	guivars.elements.alerts.alerts.configure(yscrollcommand=guivars.elements.alerts.sr_scrollbar.set)
+	guivars.elements.alerts.alerts.grid(row=2,column=0,sticky="W",columnspan=50)
+	guicmds.alerts.getAlerts() #Reload alerts
+	if guicmds.alerts.getAlertsAmt() > 0: change_info_label_content(text=f"Aktuelle Meldungen: {guicmds.alerts.getAlertsAmt()}",color="red") #Show number of alerts to user
+	
 	#Bind frame of first Page in guivars.pages.pages_tlst to window
-	guivars.frames.pages[0].grid(row=1,column=0,pady=4)
+	guivars.frames.pages[0].grid(row=1,column=0,columnspan=11,pady=4)
 
 	#Load keybinds
 	log("init_gui","info","Loading window keybinds")
@@ -282,6 +333,10 @@ def change_title(title=""):
 
 def change_current_path(path=""):
 	guivars.elements.general.actionpath.configure(text=path)
+
+def change_info_label_content(text="",color="black"):
+	guivars.elements.general.info_lbl.configure(text=text)
+	guivars.elements.general.info_lbl.configure(fg=color)
 
 if __name__ == "__main__":
 	init_gui()
