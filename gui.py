@@ -12,7 +12,7 @@ def log(src:str,tpe:str,txt:str): #Log function for GUI functions
 	try:
 		with open("gui.log","a") as fle:
 			#fle.write(f"<span style='color:{mdclr}>**[GUI/{src}]** *{tpe.upper()}*: {txt}</span>\n")
-			fle.write(f"GUI/{src}] {tpe.upper()}: {txt}\n")
+			fle.write(f"[GUI/{src}] {tpe.upper()}: {txt}\n")
 	except: pass
 
 from tkinter import *
@@ -21,7 +21,7 @@ try: import database as db
 except: log("import","warn","Could not find module database.py")
 
 class guivars(): #Variables & Widgets of GUI
-	test = False
+	test = True
 	class pages():
 		pages_tp = {"Bücher verwalten":"manageBooks","Schüler verwalten":"managePupils","Meldungen":"Alerts"}
 		pages_pt = {"manageBooks":"Bücher verwalten","managePupils":"Schüler verwalten","Alerts":"Meldungen"}
@@ -29,12 +29,14 @@ class guivars(): #Variables & Widgets of GUI
 		currentpage = "manageBooks"
 	class frames():
 		defsize = []
-		class manageBooks(): ...
+		class manageBooks():
+			class toplevel(): ...
 		class managePupils(): ...
 		class alerts(): ...
 	class elements():
 		class general(): ...
-		class manageBooks(): ...
+		class manageBooks():
+			class toplevel(): ...
 		class managePupils(): ...
 		class alerts(): ...
 
@@ -81,6 +83,62 @@ class guicmds(): #Commands of GUI
 				_return.append(guivars.elements.manageBooks.searchresults.item(elm,"values"))
 			log("guicmds.manageBooks.get_selected","okay","Selected items read")
 			return _return
+		
+		class windows(): #Windows for dialogs
+			def prepeare_toplevel_dialog_window(): #Dialog for rent/return of a book
+				"""
+				Documentation for Toplevel see: https://www.bing.com/search?pglt=2083&q=python3+tkinter+toplevel+window&cvid=2e072eaff57c4e05937584ee69546b83&gs_lcrp=EgRlZGdlKgYIABBFGDkyBggAEEUYOTIHCAEQ6wcYQNIBCTEzNTUxajBqMagCALACAA&FORM=ANNTA1&PC=U531
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window")
+				"""
+
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Creating toplevel window")
+				guivars.elements.manageBooks.dialog = Toplevel(guivars.win)
+				guivars.elements.manageBooks.dialog.title("None")
+				guivars.elements.manageBooks.dialog.geometry("600x300")
+
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Overwriting default window kill command")
+				guivars.elements.manageBooks.dialog.protocol("WM_DELETE_WINDOW",guicmds.manageBooks.windows.hide_dialog)
+
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring toplevel window frames")
+				guivars.frames.manageBooks.toplevel.rent_book = Frame(guivars.elements.manageBooks.dialog)
+				guivars.frames.manageBooks.toplevel.return_book = Frame(guivars.elements.manageBooks.dialog)
+
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring widgets for rent book frame")
+				guivars.elements.manageBooks.toplevel.rentbook_buttonframe = Frame(guivars.frames.manageBooks.toplevel.rent_book,bd=5,relief="ridge",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_buttonframe.grid(row=0,column=0,sticky="W")
+				guivars.elements.manageBooks.toplevel.rentselbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Ausgewähltes Buch ausleihen",command=lambda:log("toplevel.rentselbook_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.rentselbook_btn.grid(row=0,column=0)
+				guivars.elements.manageBooks.toplevel.rentscanbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Barcode scannen zum Ausleihen")
+				guivars.elements.manageBooks.toplevel.rentscanbook_btn.grid(row=1,column=0)
+
+				guivars.elements.manageBooks.toplevel.rentbook_dataframe = Frame(guivars.frames.manageBooks.toplevel.rent_book,bd=5,relief="ridge",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_dataframe.grid(row=0,column=1,sticky="W",padx=3)
+				Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Testlabel").pack(padx=5,pady=5)
+
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Hiding toplevel window")
+				guivars.elements.manageBooks.dialog.withdraw()
+				log("guicmds.manageBooks.windows.show_return_book_dialog","okay","Configured toplevel dialog window")
+			
+			def show_rent_book_dialog():
+				log("guicmds.manageBooks.windows.show_rent_book_dialog","info","Configuring toplevel dialog for book rent")
+				guivars.frames.manageBooks.toplevel.rent_book.pack(pady=5,padx=5,side="left",anchor="nw")
+				guivars.frames.manageBooks.toplevel.return_book.pack_forget()
+				guivars.elements.manageBooks.dialog.title("Buch ausleihen")
+				guivars.elements.manageBooks.dialog.deiconify()
+				log("guicmds.manageBooks.windows.show_rent_book_dialog","okay","Configured toplevel dialog for book rent")
+			
+			def show_return_book_dialog():
+				log("guicmds.manageBooks.windows.show_return_book_dialog","info","Configuring toplevel dialog for book return")
+				guivars.frames.manageBooks.toplevel.return_book.pack(pady=5,padx=5)
+				guivars.frames.manageBooks.toplevel.rent_book.pack_forget()
+				guivars.elements.manageBooks.dialog.title("Buch zurückgeben")
+				guivars.elements.manageBooks.dialog.deiconify()
+				log("guicmds.manageBooks.windows.show_return_book_dialog","okay","Configured toplevel dialog for book return")
+			
+			def hide_dialog():
+				log("guicmds.manageBooks.windows.hide_dialog","info","Hiding toplevel dialog")
+				guivars.elements.manageBooks.dialog.withdraw()
+				log("guicmds.manageBooks.windows.hide_dialog","okay","Hidden toplevel dialog window")
 
 	class managePupils():
 		def getPupils():
@@ -245,9 +303,9 @@ def init_gui(title="Bücherverwaltung"):
 	guivars.elements.manageBooks.rembook_btn.grid(row=3,column=0,padx=6,pady=4)
 	guivars.frames.manageBooks.editbooks_frm.grid(row=0,column=1)
 	guivars.frames.manageBooks.rentbooks_frm = Frame(p,bg="#6DAD73")
-	guivars.elements.manageBooks.rentbook_btn = Button(guivars.frames.manageBooks.rentbooks_frm,text="Buch ausleihen",command=lambda:log("rentbook_btn","okay","Click event detected"))
+	guivars.elements.manageBooks.rentbook_btn = Button(guivars.frames.manageBooks.rentbooks_frm,text="Buch ausleihen",command=guicmds.manageBooks.windows.show_rent_book_dialog) #command=lambda:log("rentbook_btn","okay","Click event detected"))
 	guivars.elements.manageBooks.rentbook_btn.grid(row=0,column=0,padx=6,pady=4)
-	guivars.elements.manageBooks.returnbook_btn = Button(guivars.frames.manageBooks.rentbooks_frm,text="Buch zurückgeben",command=lambda:log("returnbook_btn","okay","Click event detected"))
+	guivars.elements.manageBooks.returnbook_btn = Button(guivars.frames.manageBooks.rentbooks_frm,text="Buch zurückgeben",command=guicmds.manageBooks.windows.show_return_book_dialog)#command=lambda:log("returnbook_btn","okay","Click event detected"))
 	guivars.elements.manageBooks.returnbook_btn.grid(row=1,column=0,padx=6,pady=4)
 	guivars.frames.manageBooks.rentbooks_frm.grid(row=1,column=1,pady=2)
 	
@@ -324,6 +382,9 @@ def init_gui(title="Bücherverwaltung"):
 	log("init_gui","info","Loading window keybinds")
 	guivars.win.bind("<F6>",guicmds.general.reload_widget)
 	log("init_gui","okay","Window keybinds loaded")
+
+	#Create toplevel window for dialog of book rent/return
+	guicmds.manageBooks.windows.prepeare_toplevel_dialog_window()
 	
 	#Bind mainframe to window
 	guivars.frames.main.pack(side="left",anchor="nw")
