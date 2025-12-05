@@ -17,7 +17,7 @@ def log(src:str,tpe:str,txt:str): #Log function for GUI functions
 
 from tkinter import *
 from tkinter import ttk
-try: import database as db
+try: import Bibliothek.database as db
 except: log("import","warn","Could not find module database.py")
 
 class guivars(): #Variables & Widgets of GUI
