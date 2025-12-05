@@ -23,7 +23,8 @@ def hole_buchdaten(isbn):
         data = response.json() 
         book_key = f'ISBN:{isbn}'
         
-        
+        if book_key not in data:
+           print('')
     except requests.exceptions.RequestException as e:
         print(f"Network Error: {e}")
         return None
