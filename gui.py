@@ -94,7 +94,7 @@ class guicmds(): #Commands of GUI
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Creating toplevel window")
 				guivars.elements.manageBooks.dialog = Toplevel(guivars.win)
 				guivars.elements.manageBooks.dialog.title("None")
-				guivars.elements.manageBooks.dialog.geometry("700x350")
+				guivars.elements.manageBooks.dialog.geometry("650x250")
 
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Overwriting default window kill command")
 				guivars.elements.manageBooks.dialog.protocol("WM_DELETE_WINDOW",guicmds.manageBooks.windows.hide_dialog)
@@ -106,38 +106,76 @@ class guicmds(): #Commands of GUI
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring widgets for rent book frame")
 				guivars.elements.manageBooks.toplevel.rentbook_buttonframe = Frame(guivars.frames.manageBooks.toplevel.rent_book,bd=5,relief="ridge",bg="lightgray")
 				guivars.elements.manageBooks.toplevel.rentbook_buttonframe.grid(row=0,column=0,sticky="W")
-				guivars.elements.manageBooks.toplevel.rentselbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Ausgewähltes Buch laden",command=guicmds.manageBooks.windows.load_bookdata_for_rent_selection) #command=lambda:log("toplevel.rentselbook_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.rentselbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Ausgewähltes Buch laden",command=guicmds.manageBooks.windows.load_bookdata_for_rent_selection,font=("Monospace",10)) #command=lambda:log("toplevel.rentselbook_btn","okay","Click event detected"))
 				guivars.elements.manageBooks.toplevel.rentselbook_btn.grid(row=0,column=0)
-				guivars.elements.manageBooks.toplevel.rentscanbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Buchdaten mit Barcode laden")
+				guivars.elements.manageBooks.toplevel.rentscanbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.rentscanbook_btn","okay","Click event detected"))
 				guivars.elements.manageBooks.toplevel.rentscanbook_btn.grid(row=1,column=0)
 
 				#Configure information table for book information in rent frame
 				guivars.elements.manageBooks.toplevel.rentbook_dataframe = Frame(guivars.frames.manageBooks.toplevel.rent_book,bd=5,relief="ridge",bg="lightgray")
 				guivars.elements.manageBooks.toplevel.rentbook_dataframe.grid(row=0,column=1,sticky="W",padx=3)
-				guivars.elements.manageBooks.toplevel.rentbook_data_title_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Titel:",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_data_title_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Titel:",bg="lightgray",font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_title_lbl.grid(row=0,column=0,sticky="E",pady=2)
-				guivars.elements.manageBooks.toplevel.rentbook_data_author_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Author:",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_data_author_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Author:",bg="lightgray",font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_author_lbl.grid(row=1,column=0,sticky="E",pady=2)
-				guivars.elements.manageBooks.toplevel.rentbook_data_publishion_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Veröffentlichung",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_data_publishion_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Veröffentlichung",bg="lightgray",font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_publishion_lbl.grid(row=2,column=0,sticky="E",pady=2)
-				guivars.elements.manageBooks.toplevel.rentbook_data_isbn_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="ISBN:",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_data_isbn_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="ISBN:",bg="lightgray",font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_isbn_lbl.grid(row=3,column=0,sticky="E",pady=2)
-				guivars.elements.manageBooks.toplevel.rentbook_data_signature_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Signatur:",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.rentbook_data_signature_lbl = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Signatur:",bg="lightgray",font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_signature_lbl.grid(row=4,column=0,sticky="E",pady=2)
 				
-				guivars.elements.manageBooks.toplevel.rentbook_data_title = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38)
+				guivars.elements.manageBooks.toplevel.rentbook_data_title = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_title.grid(row=0,column=1,sticky="W")
-				guivars.elements.manageBooks.toplevel.rentbook_data_author = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38)
+				guivars.elements.manageBooks.toplevel.rentbook_data_author = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_author.grid(row=1,column=1,sticky="W")
-				guivars.elements.manageBooks.toplevel.rentbook_data_publishion = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38)
+				guivars.elements.manageBooks.toplevel.rentbook_data_publishion = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_publishion.grid(row=2,column=1,sticky="W")
-				guivars.elements.manageBooks.toplevel.rentbook_data_isbn = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38)
+				guivars.elements.manageBooks.toplevel.rentbook_data_isbn = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_isbn.grid(row=3,column=1,sticky="W")
-				guivars.elements.manageBooks.toplevel.rentbook_data_signature = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38)
+				guivars.elements.manageBooks.toplevel.rentbook_data_signature = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_signature.grid(row=4,column=1,sticky="W")
 				
-				guivars.elements.manageBooks.toplevel.rentbook_final_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Buch ausleihen!",command=lambda:log("toplevel.rentbook_final_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.rentbook_final_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Buch ausleihen!",command=lambda:log("toplevel.rentbook_final_btn","okay","Click event detected"),font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_final_btn.grid(row=5,column=0,columnspan=2)
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Widgets for rent book frame configured")
+
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring widgets for return book frame")
+				guivars.elements.manageBooks.toplevel.returnbook_buttonframe = Frame(guivars.frames.manageBooks.toplevel.return_book,bd=5,relief="ridge",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.returnbook_buttonframe.grid(row=0,column=0,sticky="W")
+				guivars.elements.manageBooks.toplevel.returnselbook_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Ausgewähltes Buch laden",command=guicmds.manageBooks.windows.load_bookdata_for_return_selection,font=("Monospace",10)) #command=lambda:log("toplevel.rentselbook_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.returnselbook_btn.grid(row=0,column=0)
+				guivars.elements.manageBooks.toplevel.returnscanbook_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.returnscanbook_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.returnscanbook_btn.grid(row=1,column=0)
+
+				#Configure information table for book information in return frame
+				guivars.elements.manageBooks.toplevel.returnbook_dataframe = Frame(guivars.frames.manageBooks.toplevel.return_book,bd=5,relief="ridge",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.returnbook_dataframe.grid(row=0,column=1,sticky="W",padx=3)
+				guivars.elements.manageBooks.toplevel.returnbook_data_title_lbl = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="Titel:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_title_lbl.grid(row=0,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.returnbook_data_author_lbl = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="Author:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_author_lbl.grid(row=1,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.returnbook_data_publishion_lbl = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="Veröffentlichung",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_publishion_lbl.grid(row=2,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.returnbook_data_isbn_lbl = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="ISBN:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_isbn_lbl.grid(row=3,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.returnbook_data_signature_lbl = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="Signatur:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_signature_lbl.grid(row=4,column=0,sticky="E",pady=2)
+				
+				guivars.elements.manageBooks.toplevel.returnbook_data_title = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_title.grid(row=0,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.returnbook_data_author = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_author.grid(row=1,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.returnbook_data_publishion = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_publishion.grid(row=2,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.returnbook_data_isbn = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_isbn.grid(row=3,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.returnbook_data_signature = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_data_signature.grid(row=4,column=1,sticky="W")
+				
+				guivars.elements.manageBooks.toplevel.returnbook_final_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="Buch zurückgeben!",command=lambda:log("toplevel.returnbook_final_btn","okay","Click event detected"),font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.returnbook_final_btn.grid(row=5,column=0,columnspan=2)
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Widgets for return book frame configured")
 
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Hiding toplevel window")
 				guivars.elements.manageBooks.dialog.withdraw()
@@ -181,6 +219,24 @@ class guicmds(): #Commands of GUI
 				for i in range(len(cnf)):
 					cnf[i].configure(text=data[i])
 				log("guicmds.manageBooks.windows.load_bookdata_for_rent_selection","okay","Bookdata loaded")
+			
+			def load_bookdata_for_return_selection():
+				log("guicmds.manageBooks.windows.load_bookdata_for_return_selection","info","Loading selected bookdata from main window to check in dialog")
+				cnf = [
+					guivars.elements.manageBooks.toplevel.returnbook_data_title,
+					guivars.elements.manageBooks.toplevel.returnbook_data_author,
+					guivars.elements.manageBooks.toplevel.returnbook_data_publishion,
+					guivars.elements.manageBooks.toplevel.returnbook_data_isbn,
+					guivars.elements.manageBooks.toplevel.returnbook_data_signature
+				]
+				try: #An IndexError has to be expected since if no book is selected, the .selection() list is empty
+					data = guivars.elements.manageBooks.searchresults.item(guivars.elements.manageBooks.searchresults.selection()[0],"values")
+				except IndexError:
+					data = ["Nichts ausgewählt"]
+					for i in range(5): data.append("None")
+				for i in range(len(cnf)):
+					cnf[i].configure(text=data[i])
+				log("guicmds.manageBooks.windows.load_bookdata_for_return_selection","okay","Bookdata loaded")
 
 	class managePupils():
 		def getPupils():
@@ -204,15 +260,16 @@ class guicmds(): #Commands of GUI
 		def getAlerts():
 			log("guicmds.alerts.getAlerts","info","Loading alerts...")
 			try:
-				guivars.elements.alerts.alerts.delete(0,END)
+				guiutils.clearTreeviewContent(guivars.elements.alerts.searchresults)
 				if guivars.test:
 					tstlst = []
-					for i in range(200): tstlst.append(f"Test alert number {i}")
-					for elm in tstlst: guivars.elements.alerts.alerts.insert(END,f"> {elm}")
+					for i in range(200): tstlst.append(("UNKNOWN",f"Alerttext of alert message {i}"))
+					for elm in tstlst:
+						guivars.elements.alerts.searchresults.insert("","end",values=elm)
 				log("guicmds.alerts.getAlerts","okay","Alerts loaded into Listbox")
 			except Exception as exc:
 				log("guicmds.alerts.getAlerts","error",f"Loading alerts failed ({exc})")
-				guivars.elements.alerts.alerts.insert(END,"> Failed to load alerts!")
+				guivars.elements.managePupils.searchresults.insert("","end",values=("UNKNOWN","ERROR"))
 		
 		def getAlertsAmt():
 			log("guicmds.alerts.getAlertsAmt","info","Loading amount of alerts...")
@@ -258,6 +315,13 @@ class guiutils(): #Useful functions for GUI
 		guivars.elements.managePupils.searchresults.column("class",anchor=CENTER,width=100)
 		guivars.elements.managePupils.searchresults.heading("class",text="Klasse")
 		guivars.elements.managePupils.searchresults.column("scrollbar",anchor=CENTER,width=2)
+
+	def setupAlertsList():
+		guivars.elements.alerts.searchresults.column("type",anchor=CENTER,width=100)
+		guivars.elements.alerts.searchresults.heading("type",text="Typ")
+		guivars.elements.alerts.searchresults.column("text",anchor=CENTER,width=660)
+		guivars.elements.alerts.searchresults.heading("text",text="Nachricht")
+		guivars.elements.alerts.searchresults.column("scrollbar",anchor=CENTER,width=2)
 	
 	def clearTreeviewContent(treeview:ttk.Treeview):
 		treeview.delete(*treeview.get_children())
@@ -291,6 +355,12 @@ def init_gui(title="Bücherverwaltung"):
 	guivars.frames.main.grid_rowconfigure(0,weight=1)
 	guivars.frames.main.grid_rowconfigure(1,weight=10)
 	guivars.frames.top.grid_columnconfigure(1,weight=4)
+
+	#Configure Red Font color style for treeviews
+	log("init_gui","info","Initializing styles for Treeviews (grids)")
+	guivars.elements.treeview_item_red_style = ttk.Style()
+	guivars.elements.treeview_item_red_style.configure("Red.Treeview",foreground="red")
+	log("init_gui","okay","Styles for Treeviews prepeared")
 
 	#Configure Elements of navigation line
 	log("init_gui","info","Configuring Navigation Widgets")
@@ -409,11 +479,17 @@ def init_gui(title="Bücherverwaltung"):
 	guivars.elements.alerts.title.grid(row=0,column=0,columnspan=4,sticky="W")
 	guivars.elements.alerts.reload_btn = Button(guivars.frames.alerts.alertsList,text="Aktualisiere Liste (F6)",command=guicmds.alerts.getAlerts)
 	guivars.elements.alerts.reload_btn.grid(row=1,column=0,columnspan=4,sticky="W",pady=2)
-	guivars.elements.alerts.alerts = Listbox(guivars.frames.alerts.alertsList,width=100,height=20,fg="red")
+	"""guivars.elements.alerts.alerts = Listbox(guivars.frames.alerts.alertsList,width=100,height=20,fg="red")
 	guivars.elements.alerts.sr_scrollbar = ttk.Scrollbar(guivars.elements.alerts.alerts,orient="vertical",command=guivars.elements.alerts.alerts.yview)
 	guivars.elements.alerts.sr_scrollbar.place(x=790,y=0,height=400)
 	guivars.elements.alerts.alerts.configure(yscrollcommand=guivars.elements.alerts.sr_scrollbar.set)
-	guivars.elements.alerts.alerts.grid(row=2,column=0,sticky="W",columnspan=50)
+	guivars.elements.alerts.alerts.grid(row=2,column=0,sticky="W",columnspan=50)"""
+	guivars.elements.alerts.searchresults = ttk.Treeview(guivars.frames.alerts.alertsList,columns=("type","text","scrollbar"),selectmode="browse",show="headings",height=20,style="Red.Treeview")
+	guivars.elements.alerts.sr_scrollbar = ttk.Scrollbar(guivars.elements.alerts.searchresults,orient="vertical",command=guivars.elements.alerts.searchresults.yview)
+	guivars.elements.alerts.sr_scrollbar.place(x=745,y=25,height=400)
+	guivars.elements.alerts.searchresults.configure(yscrollcommand=guivars.elements.alerts.sr_scrollbar.set)
+	guivars.elements.alerts.searchresults.grid(row=2,column=0,sticky="W",columnspan=50)
+	guiutils.setupAlertsList() #Setup columns of searchresults
 	guicmds.alerts.getAlerts() #Reload alerts
 	if guicmds.alerts.getAlertsAmt() > 0: change_info_label_content(text=f"Aktuelle Meldungen: {guicmds.alerts.getAlertsAmt()}",color="red") #Show number of alerts to user
 	
