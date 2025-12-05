@@ -49,6 +49,7 @@ def fuege_buch_hinzu(isbn, titel, autor, barcode):
      c.execute('''INSERT INTO buecher (isbn, titel, autor, barcode)
                VALUES(?,?,?,?)''', (isbn, titel, autor, barcode))   
      print(f"Buch '{titel}' erfolgreich hinzugefügt!")
+     conn.commit()
      return True 
  
     except sqlite3.IntegrityError:
@@ -73,13 +74,13 @@ def lade_schueler_aus_csv(dateipfad):
                
                
         conn.commit()
-        
+    
     except sqlite3.IntegrityError:
         print(f"Übersprungen – Barcode bereits vorhanden: {barcode}")
         
     finally:
         conn.close()
-
+ 
 
 def suche_buch(suchebegriff):
     conn = sqlite3.connect('bibliothek.db')
@@ -88,6 +89,7 @@ def suche_buch(suchebegriff):
     c.execute('''SELECT * FROM buecher WHERE titel LIKE ? OR autor LIKE ? OR isbn LIKE ?''',(f'%{suchebegriff}%',f'%{suchebegriff}%',f'%{suchebegriff}%'))
     
     buecher= c.fetchall()
+    conn.commit()
     conn.close()
     return buecher
     
