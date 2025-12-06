@@ -92,8 +92,58 @@ def suche_buch(suchebegriff):
     conn.commit()
     conn.close()
     return buecher
-    
 
+## BUECHER    
+def loesche_buch(buch_id):
+   conn = sqlite3.connect('bibliothek.db')
+   c = conn.cursor()  
+   
+   try:
+        # Check the loan records for this book.
+       c.execute("SELECT * FROM ausleihen WHERE buch_id = ? AND ruecgabedatum IS NULL", (buch_id,))
+       aktive_ausleihen=c.fetchall()
+       
+       if aktive_ausleihen:
+           print(" Das Buch ist derzeit ausgeliehen, kann nicht gelöscht werden!")
+           return False
+       
+       # Delete book
+       c.execute("DELETE FROM buecher WHERE id = ?", (buch_id,))
+       conn.commit()
+       print("Das Buch wurde erfolgreich gelöscht!")
+       return True
+       
+   except Exception as e:
+       print(f"Deletion error: {e}")
+       return False
+    
+   finally: 
+       conn.close()
+
+## SCHUELER
+def loesche_alle_schueler():      
+    conn=sqlite3.connect('bibliothek.db')
+    c=conn.cursor()
+    
+    try:
+        c.execute("SELECT COUNT(*) FROM ausleihen WHERE rueckgabedatum IS NULL")
+        aktive_ausleihen=c.fetchone()[0]
+        
+        if aktive_ausleihen >0:
+            print(f"Fehler: {aktive_ausleihen} aktive Ausleihen gefunden! Schüler können nicht gelöscht werden.") 
+            return False
+        
+        c.execute("DELETE FROM schueler")
+        conn.commit()
+        print("Alle Schüler erfolgreich gelöscht!") 
+        return True
+    
+    except Exception as e:
+        print(f"Löschfehler: {e}")
+        return False    
+    finally:
+        conn.close() 
+        
 if __name__ == "__main__":
     erstelle_datenbank()
     
