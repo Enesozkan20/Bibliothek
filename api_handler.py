@@ -31,9 +31,20 @@ def hole_buchdaten(isbn):
            print('Das Buch mit dieser ISBN-Nummer konnte nicht gefunden werden.')
            return None
         #Get the book data   
-        book_data= data[book_key]
+        book_data = data[book_key]
         
+        result = {
+            'titel': book_data.get('title', 'Unknown Title'), 
+            'autor': ','.join([author['name'] for author in book_data.get('authors', []) ]) if book_data.get('authors') else 'Unknown Author',
+            'jahr': book_data.get('publish_date', 'Unknown'),
+            # Book cover image URL (large size)
+            'cover_url':book_data.get('cover',{}).get('large', '') if book_data.get('cover') else '',
+            'isbn':isbn    
+        }
         
+        print(f"Book found: {result['titel']}")
+        return result # THIS WAS MISSING
+    
     except requests.exceptions.RequestException as e:
         print(f"Network Error: {e}")
         return None
@@ -56,13 +67,57 @@ def buche_automatisch_ein(isbn, barcode):
         if not buchdaten: 
             print("Cannot get book information")
             return False
+        
         # Add book to database
         success = fuege_buch_hinzu(
             isbn=buchdaten['isbn'],
             titel= buchdaten['titel'],
-            author = buchdaten['autor'],
+            autor = buchdaten['autor'],
             barcode= barcode,
-        
         )
+        
+        #Check if succesful
+        if success:
+            print(f"Book added succesfully: {buchdaten['titel']}")
+        else: 
+            print("Cannot add book to database")
+            return False
+        
     except ImportError: 
         print("Database module not found")
+        return False
+    
+    
+def test_api():
+  # Test function for API
+  
+   print("=== API TEST STARTING ===")
+   
+   test_isbns=[
+        "9780140328721",  # Matilda - Roald Dahl
+        "9780439064873",  # Harry Potter
+        "9780000000000"   # Invalid ISBN
+   ]
+   
+   # Test each ISBN
+   for isbn in test_isbns:
+       print(f"\n ISBN: {isbn}")
+       buchdaten = hole_buchdaten(isbn)
+       
+       if buchdaten:
+           print(f"Title: {buchdaten['titel']}")
+           print(f"Author: {buchdaten['autor']}")
+           print(f"Year: {buchdaten['jahr']}")
+        
+       else:
+           print("Book not found")
+           
+           
+def test_automatische_buchereinfügung():
+    print("\n   Automatic book adding test   ")   
+    buche_automatisch_ein("9780140328721", "B000100") 
+    
+       
+if __name__ =="__main__":
+    test_api()
+    test_automatische_buchereinfügung()
