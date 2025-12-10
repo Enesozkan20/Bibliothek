@@ -3,14 +3,14 @@ class guierrs():
 	class InvailidArgument(Exception): ...
 
 #Prepeare log file
-with open("gui.log","w+") as fle: fle.write("Log of GUI for Bibilothek project\n")
+with open("gui.log","w+",encoding="UTF-8") as fle: fle.write("Log of GUI for Bibilothek project\n")
 
 def log(src:str,tpe:str,txt:str): #Log function for GUI functions
 	clr = "31" if tpe.lower() in ("err","error","fatal") else "32" if tpe.lower() in ("okay") else "33" if tpe.lower() in ("warn","warning") else "36" if tpe.lower() in ("info") else "34" if tpe.lower() in ("debug") else "0"
 	mdclr = "red" if tpe.lower() in ("err","error","fatal") else "green" if tpe.lower() in ("okay") else "orange" if tpe.lower() in ("warn","warning") else "cyan" if tpe.lower() in ("info") else "blue" if tpe.lower() in ("debug") else "white"
 	print(f"\033[{clr}m[GUI/{src}] {tpe.upper()}: {txt}\033[0m")
 	try:
-		with open("gui.log","a") as fle:
+		with open("gui.log","a",encoding="UTF-8") as fle:
 			#fle.write(f"<span style='color:{mdclr}>**[GUI/{src}]** *{tpe.upper()}*: {txt}</span>\n")
 			fle.write(f"[GUI/{src}] {tpe.upper()}: {txt}\n")
 	except: pass
@@ -21,7 +21,7 @@ try: import database as db
 except Exception as exc: log("import","warn",f"Could not import module database.py ({exc})")
 
 class guivars(): #Variables & Widgets of GUI
-	test = True
+	test = False
 	class pages():
 		pages_tp = {"Bücher verwalten":"manageBooks","Schüler verwalten":"managePupils","Meldungen":"Alerts"}
 		pages_pt = {"manageBooks":"Bücher verwalten","managePupils":"Schüler verwalten","Alerts":"Meldungen"}
@@ -54,6 +54,10 @@ class guicmds(): #Commands of GUI
 				frm.grid_forget()
 			guivars.frames.pages[guivars.pages.pages_tlst.index(guivars.elements.general.navigation.get())].grid(row=1,column=0,columnspan=11,pady=4)
 			guivars.pages.currentpage = guivars.pages.pages_tp[guivars.elements.general.navigation.get()]
+		
+		def run_command_from_func_key(event):
+			events = {112:"F1",113:"F2",114:"F3",115:"F4",116:"F5"}
+			log("guicmds.general.run_command_from_func_key","okay",f"Detected keypress on function key '{events[event.keycode]}'")
 		
 		def reload_widget(event): #Reload specified widget on page
 			actlst = {"manageBooks":guicmds.manageBooks.list_searched_books,"managePupils":guicmds.managePupils.getPupils,"Alerts":guicmds.alerts.getAlerts}
@@ -223,9 +227,13 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.scan_barcode_btn.grid(row=6,column=2,sticky="W")
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Widgets for add book frame configured")
 
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring keybinds for toplevel dialog window")
+				guivars.elements.manageBooks.dialog.bind("<Escape>",lambda event: guicmds.manageBooks.windows.hide_dialog())
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Keybinds for toplevel dialog window configured")
+
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Hiding toplevel window")
 				guivars.elements.manageBooks.dialog.withdraw()
-				log("guicmds.manageBooks.windows.show_return_book_dialog","okay","Configured toplevel dialog window")
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Configured toplevel dialog window")
 			
 			def show_rent_book_dialog():
 				log("guicmds.manageBooks.windows.show_rent_book_dialog","info","Configuring toplevel dialog for book rent")
@@ -611,7 +619,9 @@ def build_gui(title="Bücherverwaltung"):
 	#Load keybinds
 	log("init_gui","info","Loading window keybinds")
 	guivars.win.bind("<F6>",guicmds.general.reload_widget)
+	guivars.win.bind("<Escape>",lambda event: window_close())
 	for i in range(4): guivars.win.bind(f"<Shift-F{i+1}>",lambda event:log("window","okay",f"Shift with a Function key was pressed"))
+	for i in range(5): guivars.win.bind(f"<F{i+1}>",guicmds.general.run_command_from_func_key)
 	log("init_gui","okay","Window keybinds loaded")
 
 	#Create toplevel window for dialog of book rent/return
@@ -619,6 +629,19 @@ def build_gui(title="Bücherverwaltung"):
 	
 	#Bind mainframe to window
 	guivars.frames.main.pack(side="left",anchor="nw")
+
+def window_mainloop():
+	log("window_mainloop","info","Introducing GUI window mainloop")
+	guivars.win.mainloop()
+	log("window_mainloop","info","Mainloop ended")
+
+def window_close():
+	log("window_close","info","Destroying GUI window")
+	try: guivars.win.destroy()
+	except Exception as exc:
+		log("window_close","error",f"Could not destroy GUI window (exc)")
+		return
+	log("window_close","okay","Window closed")
 
 def change_title(title=""):
 	guivars.win.title(title)
@@ -663,4 +686,4 @@ def change_info_label_content(key="",text="",color="black"):
 
 if __name__ == "__main__":
 	build_gui()
-	guivars.win.mainloop()
+	window_mainloop()
