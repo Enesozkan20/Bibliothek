@@ -71,6 +71,15 @@ class guicmds(): #Commands of GUI
 				frm.grid_forget()
 			guivars.frames.pages[guivars.pages.pages_tlst.index(guivars.elements.general.navigation.get())].grid(row=1,column=0,columnspan=11,pady=4)
 			guivars.pages.currentpage = guivars.pages.pages_tp[guivars.elements.general.navigation.get()]
+			log("guicmds.general.change_page","okay","Page changed")
+		
+		def change_page_from_address(addr:str):
+			log("guicmds.general.change_page_from_address","info",f"Trying to load page with address {repr(addr)}")
+			try:
+				guivars.elements.general.navigation.set(guivars.pages.pages_tlst.index(guivars.pages.pages_pt[addr]))
+				guicmds.general.change_page(None)
+			except Exception as exc:
+				log("guicmds.general.change_page_from_address","error",f"Failed to change page ({exc})")
 		
 		def run_command_from_func_key(event):
 			events = {112:"F1",113:"F2",114:"F3",115:"F4",116:"F5",117:"F6",118:"F7",119:"F8",120:"F9",121:"F10"}
@@ -466,7 +475,11 @@ def build_gui(title="Bücherverwaltung"):
 			"F3": lambda: log("window","okay","Detected button press on F3"),
 			"F4": guicmds.manageBooks.windows.show_rent_book_dialog,
 			"F5": guicmds.manageBooks.windows.show_return_book_dialog,
-			"F6": guicmds.general.reload_widget
+			"F6": guicmds.general.reload_widget,
+			"F7": lambda: guicmds.general.change_page_from_address("manageBooks"),
+			"F8": lambda: guicmds.general.change_page_from_address("managePupils"),
+			"F9": lambda: guicmds.general.change_page_from_address("Alerts"),
+			"F10": lambda: log("window","okay","Detected button press on F10")
 		},
 		"managePupils": {
 			"F1": lambda: log("window","okay","Detected button press on F1"),
@@ -474,7 +487,11 @@ def build_gui(title="Bücherverwaltung"):
 			"F3": guicmds.managePupils.remall,
 			"F4": lambda: log("window","okay","Detected button press on F4"),
 			"F5": lambda: log("window","okay","Detected button press on F5"),
-			"F6": guicmds.general.reload_widget
+			"F6": guicmds.general.reload_widget,
+			"F7": lambda: guicmds.general.change_page_from_address("manageBooks"),
+			"F8": lambda: guicmds.general.change_page_from_address("managePupils"),
+			"F9": lambda: guicmds.general.change_page_from_address("Alerts"),
+			"F10": lambda: log("window","okay","Detected button press on F10")
 		},
 		"Alerts": {
 			"F1": guicmds.alerts.markAllAsRead,
@@ -482,7 +499,11 @@ def build_gui(title="Bücherverwaltung"):
 			"F3": lambda: log("window","okay","Detected button press on F3"),
 			"F4": lambda: log("window","okay","Detected button press on F4"),
 			"F5": lambda: log("window","okay","Detected button press on F5"),
-			"F6": guicmds.general.reload_widget
+			"F6": guicmds.general.reload_widget,
+			"F7": lambda: guicmds.general.change_page_from_address("manageBooks"),
+			"F8": lambda: guicmds.general.change_page_from_address("managePupils"),
+			"F9": lambda: guicmds.general.change_page_from_address("Alerts"),
+			"F10": lambda: log("window","okay","Detected button press on F10")
 		}
 	}
 
