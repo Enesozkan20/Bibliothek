@@ -100,7 +100,7 @@ def loesche_buch(buch_id):
    
    try:
         # Check the loan records for this book.
-       c.execute("SELECT * FROM ausleihen WHERE buch_id = ? AND ruecgabedatum IS NULL", (buch_id,))
+       c.execute('''SELECT * FROM ausleihen WHERE buch_id = ? AND ruecgabedatum IS NULL''', (buch_id,))
        aktive_ausleihen=c.fetchall()
        
        if aktive_ausleihen:
@@ -120,6 +120,36 @@ def loesche_buch(buch_id):
    finally: 
        conn.close()
 
+def hole_buch_status(buch_id):
+    conn=sqlite3.connect('bibliothek.db')
+    c=conn.cursor()
+    
+    try:
+        c.execute("SELECT verfuegbar FROM buecher WHERE id = ?")
+        result=c.fetchone()
+        
+        if not result:
+            return "Nicht gefunden"
+        
+        if result[0]:
+            return "Verfügbar"
+        
+        c.execute("SELECT faellig_am FROM ausleihen WHERE buch_id = ? AND ruecgabedatum IS NULL", (buch_id,))
+        ausleihe=c.fetchone()
+        
+        if ausleihe:
+            faellig_am= datetime.strptime(ausleihe[0],'%Y-%m-%d').date()
+            heute=datetime.now().date()
+            
+            if heute> faellig_am:
+                return "Rückgabe überfällig"
+            else:
+                return "Ausgeliehen"
+        return "Verfügbar"
+        
+    finally:
+        conn.close()
+    
 ## SCHUELER
 def loesche_alle_schueler():      
     conn=sqlite3.connect('bibliothek.db')
@@ -143,6 +173,28 @@ def loesche_alle_schueler():
         return False    
     finally:
         conn.close() 
+    
+def loesche_schueler(schueler_id):
+    conn=sqlite3.connect('bibliothek.db')
+    c=conn.cursor()
+    try:
+        c.execute("SELECT COUNT(*) FROM ausleihen WHERE schueler_id = ? AND rueckgabedatum IS NULL", (schueler_id,))
+        aktive_ausleihen=c.fetchone()[0]
+        
+        if aktive_ausleihen > 0:
+            print(f"Der Student hat {aktive_ausleihen} aktive Ausleihe.")
+            return False
+        c.execute("DELETE FROM schueler WHERe id = ?")
+        conn.commit()
+        print("Schüler gelöscht")
+        return True
+    
+    except Exception as e:
+        print(f"Löschungsfehler: {e}")
+        return False
+    
+    finally:
+        conn.close()  
         
 if __name__ == "__main__":
     erstelle_datenbank()
