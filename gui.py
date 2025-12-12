@@ -2,17 +2,33 @@
 class guierrs():
 	class InvailidArgument(Exception): ...
 
+#Uservariables which can be modified VVV
+logmode = "html/termout" #Before "/": Either "html" or "plain" | After "/": Either "termout" or "noprint"
+
 #Prepeare log file
-with open("gui.log","w+",encoding="UTF-8") as fle: fle.write("Log of GUI for Bibilothek project\n")
+if logmode.split("/")[0] == "html":
+	with open("gui.log.html","w+",encoding="UTF-8") as fle:
+		fle.write("""
+<head><title>GUI-Log of Bibliothek project</title><style>body{background-color:black;font-family:Monospace}</style></head>
+<body>
+<h2 style="color:white">Log of GUI for Bibliothek project</h2>
+""")
+else:
+	with open("gui.log","w+",encoding="UTF-8") as fle: fle.write("Log of GUI for Bibliothek project\n")
 
 def log(src:str,tpe:str,txt:str): #Log function for GUI functions
+	global logmode
 	clr = "31" if tpe.lower() in ("err","error","fatal") else "32" if tpe.lower() in ("okay") else "33" if tpe.lower() in ("warn","warning") else "36" if tpe.lower() in ("info") else "34" if tpe.lower() in ("debug") else "0"
-	mdclr = "red" if tpe.lower() in ("err","error","fatal") else "green" if tpe.lower() in ("okay") else "orange" if tpe.lower() in ("warn","warning") else "cyan" if tpe.lower() in ("info") else "blue" if tpe.lower() in ("debug") else "white"
-	print(f"\033[{clr}m[GUI/{src}] {tpe.upper()}: {txt}\033[0m")
+	mdclr = "red" if tpe.lower() in ("err","error","fatal") else "lime" if tpe.lower() in ("okay") else "orange" if tpe.lower() in ("warn","warning") else "cyan" if tpe.lower() in ("info") else "blue" if tpe.lower() in ("debug") else "white"
+	if logmode.split("/")[1] == "termout": print(f"\033[{clr}m[GUI/{src}] {tpe.upper()}: {txt}\033[0m")
 	try:
-		with open("gui.log","a",encoding="UTF-8") as fle:
-			#fle.write(f"<span style='color:{mdclr}>**[GUI/{src}]** *{tpe.upper()}*: {txt}</span>\n")
-			fle.write(f"[GUI/{src}] {tpe.upper()}: {txt}\n")
+		if logmode.split("/")[0] == "html":
+			with open("gui.log.html","a",encoding="UTF-8") as fle:
+				fle.write(f"<span style='color:{mdclr}'><b>[GUI/{src}]</b> <i><b>{tpe.upper()}</b></i>: {txt}</span><br>\n")
+		else:
+			with open("gui.log","a",encoding="UTF-8") as fle:
+				#fle.write(f"<span style='color:{mdclr}>**[GUI/{src}]** *{tpe.upper()}*: {txt}</span><br>")
+				fle.write(f"[GUI/{src}] {tpe.upper()}: {txt}\n")
 	except: pass
 
 from tkinter import *
@@ -43,6 +59,7 @@ class guivars(): #Variables & Widgets of GUI
 		read_alerts = []
 		infolbl_text = {}
 		infolbl_color = {}
+		page_func_keys = {}
 
 class guicmds(): #Commands of GUI
 	def test(*args,**kwargs): print(f"Test proceed {args} {kwargs}")
@@ -54,12 +71,25 @@ class guicmds(): #Commands of GUI
 				frm.grid_forget()
 			guivars.frames.pages[guivars.pages.pages_tlst.index(guivars.elements.general.navigation.get())].grid(row=1,column=0,columnspan=11,pady=4)
 			guivars.pages.currentpage = guivars.pages.pages_tp[guivars.elements.general.navigation.get()]
+			log("guicmds.general.change_page","okay","Page changed")
+		
+		def change_page_from_address(addr:str):
+			log("guicmds.general.change_page_from_address","info",f"Trying to load page with address {repr(addr)}")
+			try:
+				guivars.elements.general.navigation.set(guivars.pages.pages_tlst.index(guivars.pages.pages_pt[addr]))
+				guicmds.general.change_page(None)
+			except Exception as exc:
+				log("guicmds.general.change_page_from_address","error",f"Failed to change page ({exc})")
 		
 		def run_command_from_func_key(event):
-			events = {112:"F1",113:"F2",114:"F3",115:"F4",116:"F5"}
-			log("guicmds.general.run_command_from_func_key","okay",f"Detected keypress on function key '{events[event.keycode]}'")
+			events = {112:"F1",113:"F2",114:"F3",115:"F4",116:"F5",117:"F6",118:"F7",119:"F8",120:"F9",121:"F10"}
+			try:
+				log("guicmds.general.run_command_from_func_key","debug",f"Detected keypress on function key '{events[event.keycode]}'")
+				guivars.user.page_func_keys[guivars.pages.pages_tp[guivars.elements.general.navigation.get()]][events[event.keycode]]()
+			except KeyError as exc: log("guicmds.general.run_command_from_func_key","warn",f"Failed to run function from function key: There is no data for the keycode {exc}")
+			except Exception as exc: log("guicmds.general.run_command_from_func_key","error",f"Failed to run function from function key ({exc})")
 		
-		def reload_widget(event): #Reload specified widget on page
+		def reload_widget(*event): #Reload specified widget on page
 			actlst = {"manageBooks":guicmds.manageBooks.list_searched_books,"managePupils":guicmds.managePupils.getPupils,"Alerts":guicmds.alerts.getAlerts}
 			try: actlst[guivars.pages.currentpage]()
 			except Exception as exc:
@@ -78,7 +108,7 @@ class guicmds(): #Commands of GUI
 				else:
 					for elm in db.suche_buch(guivars.elements.manageBooks.search_ent.get()):
 						log("guicmds.manageBooks.list_searched_books","debug",f"New book found: {elm}")
-						guivars.elements.manageBooks.searchresults.insert("","end",values=(elm[2],elm[3],"UNKNOWN",elm[1],"UNKNOWN","UNKNOWN"))
+						guivars.elements.manageBooks.searchresults.insert("","end",values=(elm[2],elm[3],"UNKNOWN",elm[1],"UNKNOWN","UNKNOWN","",elm[0]))
 				log("guicmds.manageBooks.list_searched_books","okay","List of books with search keyword loaded")
 			except Exception as exc:
 				log("guicmds.manageBooks.list_searched_books","error",f"Search for books failed ({exc})")
@@ -320,6 +350,14 @@ class guicmds(): #Commands of GUI
 			except Exception as exc:
 				log("guicmds.managePupils.getPupils","error",f"Search for pupils failed ({exc})")
 				guivars.elements.managePupils.searchresults.insert("","end",values=("None","None","None"))
+		
+		def remall():
+			log("guicmds.managePupils.remall","info","Deleting all pupils stored in database")
+			try:
+				db.loesche_alle_schueler()
+				log("guicmds.managePupils.remall","okay","Pupils deleted")
+			except Exception as exc: log("guicmds.managePupils.remall","error",f"Failed to delete all pupils from database ({exc})")
+			guicmds.managePupils.getPupils()
 	
 	class alerts():
 		def getAlerts():
@@ -429,6 +467,46 @@ Listbox für Bücher/Schülerliste Nutzen (s. https://www.geeksforgeeks.org/pyth
 """
 
 def build_gui(title="Bücherverwaltung"):
+	log("init_gui","info","Prepearing variables for GUI")
+	guivars.user.page_func_keys = {
+		"manageBooks": {
+			"F1": guicmds.manageBooks.windows.show_add_book_dialog,
+			"F2": lambda: log("window","okay","Detected button press on F2"),
+			"F3": lambda: log("window","okay","Detected button press on F3"),
+			"F4": guicmds.manageBooks.windows.show_rent_book_dialog,
+			"F5": guicmds.manageBooks.windows.show_return_book_dialog,
+			"F6": guicmds.general.reload_widget,
+			"F7": lambda: guicmds.general.change_page_from_address("manageBooks"),
+			"F8": lambda: guicmds.general.change_page_from_address("managePupils"),
+			"F9": lambda: guicmds.general.change_page_from_address("Alerts"),
+			"F10": lambda: log("window","okay","Detected button press on F10")
+		},
+		"managePupils": {
+			"F1": lambda: log("window","okay","Detected button press on F1"),
+			"F2": lambda: log("window","okay","Detected button press on F2"),
+			"F3": guicmds.managePupils.remall,
+			"F4": lambda: log("window","okay","Detected button press on F4"),
+			"F5": lambda: log("window","okay","Detected button press on F5"),
+			"F6": guicmds.general.reload_widget,
+			"F7": lambda: guicmds.general.change_page_from_address("manageBooks"),
+			"F8": lambda: guicmds.general.change_page_from_address("managePupils"),
+			"F9": lambda: guicmds.general.change_page_from_address("Alerts"),
+			"F10": lambda: log("window","okay","Detected button press on F10")
+		},
+		"Alerts": {
+			"F1": guicmds.alerts.markAllAsRead,
+			"F2": guicmds.alerts.markSingleAsRead,
+			"F3": lambda: log("window","okay","Detected button press on F3"),
+			"F4": lambda: log("window","okay","Detected button press on F4"),
+			"F5": lambda: log("window","okay","Detected button press on F5"),
+			"F6": guicmds.general.reload_widget,
+			"F7": lambda: guicmds.general.change_page_from_address("manageBooks"),
+			"F8": lambda: guicmds.general.change_page_from_address("managePupils"),
+			"F9": lambda: guicmds.general.change_page_from_address("Alerts"),
+			"F10": lambda: log("window","okay","Detected button press on F10")
+		}
+	}
+
 	log("init_gui","info","Initializing GUI...")
 	guivars.win = Tk() #Create Tk Window
 	guivars.frames.main = Frame(guivars.win) #Create mainframe of Tk Window
@@ -564,7 +642,7 @@ def build_gui(title="Bücherverwaltung"):
 	guivars.elements.managePupils.importpupils_btn.grid(row=0,column=0,padx=6)
 	guivars.elements.managePupils.addpupil_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Füge einzelnen Schüler hinzu",command=lambda:log("addpupil_btn","okay","Click event detected"))
 	guivars.elements.managePupils.addpupil_btn.grid(row=1,column=0,padx=6)
-	guivars.elements.managePupils.rempupils_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Alle Schüler löschen",command=lambda:log("rempupils_btn","okay","Click event detected"))
+	guivars.elements.managePupils.rempupils_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Alle Schüler löschen",command=guicmds.managePupils.remall)
 	guivars.elements.managePupils.rempupils_btn.grid(row=2,column=0,padx=6)
 	guivars.elements.managePupils.rempupil_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Ausgewählten Schüler löschen",command=lambda:log("rempupil_btn","okay","Click event detected"))
 	guivars.elements.managePupils.rempupil_btn.grid(row=3,column=0,padx=6)
@@ -618,10 +696,9 @@ def build_gui(title="Bücherverwaltung"):
 
 	#Load keybinds
 	log("init_gui","info","Loading window keybinds")
-	guivars.win.bind("<F6>",guicmds.general.reload_widget)
 	guivars.win.bind("<Escape>",lambda event: window_close())
 	for i in range(4): guivars.win.bind(f"<Shift-F{i+1}>",lambda event:log("window","okay",f"Shift with a Function key was pressed"))
-	for i in range(5): guivars.win.bind(f"<F{i+1}>",guicmds.general.run_command_from_func_key)
+	for i in range(12): guivars.win.bind(f"<F{i+1}>",guicmds.general.run_command_from_func_key)
 	log("init_gui","okay","Window keybinds loaded")
 
 	#Create toplevel window for dialog of book rent/return
@@ -636,12 +713,15 @@ def window_mainloop():
 	log("window_mainloop","info","Mainloop ended")
 
 def window_close():
+	global logmode
 	log("window_close","info","Destroying GUI window")
 	try: guivars.win.destroy()
 	except Exception as exc:
 		log("window_close","error",f"Could not destroy GUI window (exc)")
 		return
 	log("window_close","okay","Window closed")
+	if logmode.split("/")[0] == "html":
+		with open("gui.log.html","a",encoding="UTF-8") as fle: fle.write("</body>")
 
 def change_title(title=""):
 	guivars.win.title(title)
