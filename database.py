@@ -2,7 +2,7 @@ import sqlite3
 import csv
 from datetime import datetime, timedelta
 
-
+class Error(): ...
 def erstelle_datenbank():
     conn = sqlite3.connect('bibliothek.db')
     c = conn.cursor() 
@@ -53,8 +53,8 @@ def fuege_buch_hinzu(isbn, titel, autor, barcode):
      return True 
  
     except sqlite3.IntegrityError:
-        print("Fehler: Barcode bereits vergeben!")
-        return False
+        raise Error("Fehler: Barcode bereits vergeben!")
+       
     
     finally:
         conn.close()
@@ -76,7 +76,7 @@ def lade_schueler_aus_csv(dateipfad):
         conn.commit()
     
     except sqlite3.IntegrityError:
-        print(f"Übersprungen – Barcode bereits vorhanden: {barcode}")
+       raise Error(f"Übersprungen – Barcode bereits vorhanden: {barcode}")
         
     finally:
         conn.close()
@@ -104,9 +104,8 @@ def loesche_buch(buch_id):
        aktive_ausleihen=c.fetchall()
        
        if aktive_ausleihen:
-           print(" Das Buch ist derzeit ausgeliehen, kann nicht gelöscht werden!")
-           return False
-       
+           raise Error(" Das Buch ist derzeit ausgeliehen, kann nicht gelöscht werden!")
+          
        # Delete book
        c.execute("DELETE FROM buecher WHERE id = ?", (buch_id,))
        conn.commit()
@@ -114,8 +113,8 @@ def loesche_buch(buch_id):
        return True
        
    except Exception as e:
-       print(f"Deletion error: {e}")
-       return False
+       raise Error(f"Deletion error: {e}")
+   
     
    finally: 
        conn.close()
@@ -125,7 +124,7 @@ def hole_buch_status(buch_id):
     c=conn.cursor()
     
     try:
-        c.execute("SELECT verfuegbar FROM buecher WHERE id = ?")
+        c.execute("SELECT verfuegbar FROM buecher WHERE id = ?", (buch_id,))
         result=c.fetchone()
         
         if not result:
@@ -139,9 +138,8 @@ def hole_buch_status(buch_id):
         
         if ausleihe:
             faellig_am= datetime.strptime(ausleihe[0],'%Y-%m-%d').date()
-            heute=datetime.now().date()
-            
-            if heute> faellig_am:
+            gestern=datetime.today().date()- timedelta(days=1)
+            if gestern > faellig_am:
                 return "Rückgabe überfällig"
             else:
                 return "Ausgeliehen"
@@ -149,7 +147,39 @@ def hole_buch_status(buch_id):
         
     finally:
         conn.close()
+
+def leihe_buch_aus(buch_id, schueler_id):
+   conn=sqlite3.connect('bibliothek.db')
+   c=conn.cursor()
     
+   try: 
+        c.execute("SELECT verfuegbar FROM buecher WHERE id = ?", (buch_id,)) 
+        buch=c.fetchone()
+       
+        if not buch or not buch[0]:
+           raise Error("Buch ist nicht verfügbar")
+        
+        c.execute("SELECT id FROM buecher WHERE id = ?", (schueler_id,))
+        
+        if not c.fetchone():
+            raise Error("Schüler nicht gefunden")#
+        
+        gestern=datetime.today().date()- timedelta(days=1)
+        rueckgabedatum =gestern + timedelta(days=14)
+        
+        c.execute("INSERT INTO ausleihen (buch_id, schueler_id, ausleihdatum, faellig_am) VALUES(?,?,?,?)", (buch_id, schueler_id, gestern, rueckgabedatum))
+        
+        c.execute("UPDATE buecher SET verfuegbar = 0 WHERE id=?," (buch_id))
+        conn.commit()
+        
+        print(f"Das Buch wurde erfolgreich zurückgegeben. Rückgabe:{rueckgabedatum}")
+        return True
+    
+   except Exception as e:
+     raise Error(f"Ausleihe Fehler: {e}")  
+ 
+   finally:
+       conn.close()
 ## SCHUELER
 def loesche_alle_schueler():      
     conn=sqlite3.connect('bibliothek.db')
@@ -160,8 +190,8 @@ def loesche_alle_schueler():
         aktive_ausleihen=c.fetchone()[0]
         
         if aktive_ausleihen >0:
-            print(f"Fehler: {aktive_ausleihen} aktive Ausleihen gefunden! Schüler können nicht gelöscht werden.") 
-            return False
+            raise Error(f"Fehler: {aktive_ausleihen} aktive Ausleihen gefunden! Schüler können nicht gelöscht werden.") 
+
         
         c.execute("DELETE FROM schueler")
         conn.commit()
@@ -169,8 +199,7 @@ def loesche_alle_schueler():
         return True
     
     except Exception as e:
-        print(f"Löschfehler: {e}")
-        return False    
+        raise Error(f"Löschfehler: {e}")
     finally:
         conn.close() 
     
@@ -182,16 +211,16 @@ def loesche_schueler(schueler_id):
         aktive_ausleihen=c.fetchone()[0]
         
         if aktive_ausleihen > 0:
-            print(f"Der Student hat {aktive_ausleihen} aktive Ausleihe.")
-            return False
+            raise Error(f"Der Student hat {aktive_ausleihen} aktive Ausleihe.")
+
         c.execute("DELETE FROM schueler WHERe id = ?")
         conn.commit()
         print("Schüler gelöscht")
         return True
     
     except Exception as e:
-        print(f"Löschungsfehler: {e}")
-        return False
+        raise Error(f"Löschungsfehler: {e}")
+      
     
     finally:
         conn.close()  
