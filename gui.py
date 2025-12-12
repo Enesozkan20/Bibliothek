@@ -9,22 +9,57 @@ logmode = "html/termout" #Before "/": Either "html" or "plain" | After "/": Eith
 if logmode.split("/")[0] == "html":
 	with open("gui.log.html","w+",encoding="UTF-8") as fle:
 		fle.write("""
-<head><title>GUI-Log of Bibliothek project</title><style>body{background-color:black;font-family:Monospace}</style></head>
+<head>
+	<title>GUI-Log of Bibliothek project</title>
+	<style>
+		body{background-color:black;font-family:Monospace}
+		button{font-size:11px;font-family:Monospace;background-color:black;color:white}
+	</style>
+	<script>
+		function highlightline(lineid) {
+			let span = document.getElementById("s-"+lineid);
+			let btn = document.getElementById("b-"+lineid);
+			if(span.style.backgroundColor == "") {
+				if(span.style.color == "red") {
+					span.style.backgroundColor = "darkred";
+				} else if(span.style.color == "orange") {
+					span.style.backgroundColor = "orangered";
+				} else if(span.style.color == "lime") {
+					span.style.backgroundColor = "green";
+				} else if(span.style.color == "cyan") {
+					span.style.backgroundColor = "darkcyan";
+				} else if(span.style.color == "blue") {
+					span.style.backgroundColor = "blueviolet";
+				} else if(span.style.color == "white") {
+					span.style.backgroundColor = "gray";
+				} else {
+					span.style.backgroundColor = "red";
+				}
+				btn.style.backgroundColor = "darkred";
+			} else {
+				span.style.backgroundColor = "";
+				btn.style.backgroundColor = "";
+			}
+		}
+	</script>
+</head>
 <body>
 <h2 style="color:white">Log of GUI for Bibliothek project</h2>
 """)
 else:
 	with open("gui.log","w+",encoding="UTF-8") as fle: fle.write("Log of GUI for Bibliothek project\n")
 
+logid = 0
 def log(src:str,tpe:str,txt:str): #Log function for GUI functions
-	global logmode
+	global logmode, logid
+	logid += 1
 	clr = "31" if tpe.lower() in ("err","error","fatal") else "32" if tpe.lower() in ("okay") else "33" if tpe.lower() in ("warn","warning") else "36" if tpe.lower() in ("info") else "34" if tpe.lower() in ("debug") else "0"
 	mdclr = "red" if tpe.lower() in ("err","error","fatal") else "lime" if tpe.lower() in ("okay") else "orange" if tpe.lower() in ("warn","warning") else "cyan" if tpe.lower() in ("info") else "blue" if tpe.lower() in ("debug") else "white"
 	if logmode.split("/")[1] == "termout": print(f"\033[{clr}m[GUI/{src}] {tpe.upper()}: {txt}\033[0m")
 	try:
 		if logmode.split("/")[0] == "html":
 			with open("gui.log.html","a",encoding="UTF-8") as fle:
-				fle.write(f"<span style='color:{mdclr}'><b>[GUI/{src}]</b> <i><b>{tpe.upper()}</b></i>: {txt}</span><br>\n")
+				fle.write(f"<button onclick='highlightline(\"{logid}\")' id='b-{logid}'><b>H</b></button><span style='color:white'> {logid}: </span><span style='color:{mdclr}' id='s-{logid}'><b>[GUI/{src}]</b> <i><b>{tpe.upper()}</b></i>: {txt}</span><br>\n")
 		else:
 			with open("gui.log","a",encoding="UTF-8") as fle:
 				#fle.write(f"<span style='color:{mdclr}>**[GUI/{src}]** *{tpe.upper()}*: {txt}</span><br>")
@@ -33,6 +68,8 @@ def log(src:str,tpe:str,txt:str): #Log function for GUI functions
 
 from tkinter import *
 from tkinter import ttk
+from tkinter import filedialog
+from tkinter import messagebox
 try: import database as db
 except Exception as exc: log("import","warn",f"Could not import module database.py ({exc})")
 
@@ -76,7 +113,7 @@ class guicmds(): #Commands of GUI
 		def change_page_from_address(addr:str):
 			log("guicmds.general.change_page_from_address","info",f"Trying to load page with address {repr(addr)}")
 			try:
-				guivars.elements.general.navigation.set(guivars.pages.pages_tlst.index(guivars.pages.pages_pt[addr]))
+				guivars.elements.general.navigation.current(guivars.pages.pages_tlst.index(guivars.pages.pages_pt[addr]))
 				guicmds.general.change_page(None)
 			except Exception as exc:
 				log("guicmds.general.change_page_from_address","error",f"Failed to change page ({exc})")
@@ -142,6 +179,7 @@ class guicmds(): #Commands of GUI
 				guivars.frames.manageBooks.toplevel.rent_book = Frame(guivars.elements.manageBooks.dialog)
 				guivars.frames.manageBooks.toplevel.return_book = Frame(guivars.elements.manageBooks.dialog)
 				guivars.frames.manageBooks.toplevel.add_book = Frame(guivars.elements.manageBooks.dialog)
+				guivars.frames.manageBooks.toplevel.delete_book = Frame(guivars.elements.manageBooks.dialog)
 
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring widgets for rent book frame")
 				guivars.elements.manageBooks.toplevel.rentbook_buttonframe = Frame(guivars.frames.manageBooks.toplevel.rent_book,bd=5,relief="ridge",bg="lightgray")
@@ -257,6 +295,43 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.scan_barcode_btn.grid(row=6,column=2,sticky="W")
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Widgets for add book frame configured")
 
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring widgets for delete book frame")
+				guivars.elements.manageBooks.toplevel.deletebook_buttonframe = Frame(guivars.frames.manageBooks.toplevel.delete_book,bd=5,relief="ridge",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.deletebook_buttonframe.grid(row=0,column=0,sticky="W")
+				guivars.elements.manageBooks.toplevel.deleteselbook_btn = Button(guivars.elements.manageBooks.toplevel.deletebook_buttonframe,text="Ausgewähltes Buch laden",command=guicmds.manageBooks.windows.load_bookdata_for_rent_selection,font=("Monospace",10)) #command=lambda:log("toplevel.rentselbook_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.deleteselbook_btn.grid(row=0,column=0)
+				guivars.elements.manageBooks.toplevel.deletescanbook_btn = Button(guivars.elements.manageBooks.toplevel.deletebook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.rentscanbook_btn","okay","Click event detected"))
+				guivars.elements.manageBooks.toplevel.deletescanbook_btn.grid(row=1,column=0)
+
+				#Configure information table for book information in rent frame
+				guivars.elements.manageBooks.toplevel.deletebook_dataframe = Frame(guivars.frames.manageBooks.toplevel.delete_book,bd=5,relief="ridge",bg="lightgray")
+				guivars.elements.manageBooks.toplevel.deletebook_dataframe.grid(row=0,column=1,sticky="W",padx=3)
+				guivars.elements.manageBooks.toplevel.deletebook_data_title_lbl = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="Titel:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_title_lbl.grid(row=0,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.deletebook_data_author_lbl = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="Author:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_author_lbl.grid(row=1,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.deletebook_data_publishion_lbl = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="Veröffentlichung",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_publishion_lbl.grid(row=2,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.deletebook_data_isbn_lbl = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="ISBN:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_isbn_lbl.grid(row=3,column=0,sticky="E",pady=2)
+				guivars.elements.manageBooks.toplevel.deletebook_data_signature_lbl = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="Signatur:",bg="lightgray",font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_signature_lbl.grid(row=4,column=0,sticky="E",pady=2)
+				
+				guivars.elements.manageBooks.toplevel.deletebook_data_title = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_title.grid(row=0,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.deletebook_data_author = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_author.grid(row=1,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.deletebook_data_publishion = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_publishion.grid(row=2,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.deletebook_data_isbn = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_isbn.grid(row=3,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.deletebook_data_signature = Label(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_data_signature.grid(row=4,column=1,sticky="W")
+				
+				guivars.elements.manageBooks.toplevel.deletebook_final_btn = Button(guivars.elements.manageBooks.toplevel.deletebook_dataframe,text="Buch ausleihen!",command=lambda:log("toplevel.rentbook_final_btn","okay","Click event detected"),font=("Monospace",10))
+				guivars.elements.manageBooks.toplevel.deletebook_final_btn.grid(row=5,column=0,columnspan=2)
+				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Widgets for rent book frame configured")
+
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","info","Configuring keybinds for toplevel dialog window")
 				guivars.elements.manageBooks.dialog.bind("<Escape>",lambda event: guicmds.manageBooks.windows.hide_dialog())
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Keybinds for toplevel dialog window configured")
@@ -265,13 +340,61 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.dialog.withdraw()
 				log("guicmds.manageBooks.windows.prepeare_toplevel_dialog_window","okay","Configured toplevel dialog window")
 			
+			def clear_element_contents():
+				log("guicmds.manageBooks.windows.clear_element_contents","info","Clearing labels of book rent dialog")
+				try:
+					guivars.elements.manageBooks.toplevel.rentbook_data_title.configure(text="")
+					guivars.elements.manageBooks.toplevel.rentbook_data_author.configure(text="")
+					guivars.elements.manageBooks.toplevel.rentbook_data_publishion.configure(text="")
+					guivars.elements.manageBooks.toplevel.rentbook_data_isbn.configure(text="")
+					guivars.elements.manageBooks.toplevel.rentbook_data_signature.configure(text="")
+					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book rent dialog cleared")
+				except Exception as exc:
+					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book rent dialog labels ({exc})")
+				
+				log("guicmds.manageBooks.windows.clear_element_contents","info","Clearing labels of book return dialog")
+				try:
+					guivars.elements.manageBooks.toplevel.returnbook_data_title.configure(text="")
+					guivars.elements.manageBooks.toplevel.returnbook_data_author.configure(text="")
+					guivars.elements.manageBooks.toplevel.returnbook_data_publishion.configure(text="")
+					guivars.elements.manageBooks.toplevel.returnbook_data_isbn.configure(text="")
+					guivars.elements.manageBooks.toplevel.returnbook_data_signature.configure(text="")
+					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book return dialog cleared")
+				except Exception as exc:
+					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book return dialog labels ({exc})")
+				
+				log("guicmds.manageBooks.windows.clear_element_contents","info","Clearing labels of book add dialog")
+				try:
+					guivars.elements.manageBooks.toplevel.addbook_data_title.delete(0,END)
+					guivars.elements.manageBooks.toplevel.addbook_data_author.delete(0,END)
+					guivars.elements.manageBooks.toplevel.addbook_data_publishion.delete(0,END)
+					guivars.elements.manageBooks.toplevel.addbook_data_isbn.delete(0,END)
+					guivars.elements.manageBooks.toplevel.addbook_data_signature.delete(0,END)
+					guivars.elements.manageBooks.toplevel.addbook_data_barcode.delete(0,END)
+					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book add dialog cleared")
+				except Exception as exc:
+					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book add dialog labels ({exc})")
+				
+				log("guicmds.manageBooks.windows.clear_element_contents","info","Clearing labels of book delete dialog")
+				try:
+					guivars.elements.manageBooks.toplevel.deletebook_data_title.configure(text="")
+					guivars.elements.manageBooks.toplevel.deletebook_data_author.configure(text="")
+					guivars.elements.manageBooks.toplevel.deletebook_data_publishion.configure(text="")
+					guivars.elements.manageBooks.toplevel.deletebook_data_isbn.configure(text="")
+					guivars.elements.manageBooks.toplevel.deletebook_data_signature.configure(text="")
+					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book delete dialog cleared")
+				except Exception as exc:
+					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book delete dialog labels ({exc})")
+			
 			def show_rent_book_dialog():
 				log("guicmds.manageBooks.windows.show_rent_book_dialog","info","Configuring toplevel dialog for book rent")
 				guivars.frames.manageBooks.toplevel.rent_book.pack(pady=5,padx=5,side="left",anchor="nw")
 				guivars.frames.manageBooks.toplevel.return_book.pack_forget()
 				guivars.frames.manageBooks.toplevel.add_book.pack_forget()
+				guivars.frames.manageBooks.toplevel.delete_book.pack_forget()
 				guivars.elements.manageBooks.dialog.title("Buch ausleihen")
 				guivars.elements.manageBooks.dialog.deiconify()
+				guicmds.manageBooks.windows.clear_element_contents()
 				log("guicmds.manageBooks.windows.show_rent_book_dialog","okay","Configured toplevel dialog for book rent")
 			
 			def show_return_book_dialog():
@@ -279,8 +402,10 @@ class guicmds(): #Commands of GUI
 				guivars.frames.manageBooks.toplevel.rent_book.pack_forget()
 				guivars.frames.manageBooks.toplevel.return_book.pack(pady=5,padx=5)
 				guivars.frames.manageBooks.toplevel.add_book.pack_forget()
+				guivars.frames.manageBooks.toplevel.delete_book.pack_forget()
 				guivars.elements.manageBooks.dialog.title("Buch zurückgeben")
 				guivars.elements.manageBooks.dialog.deiconify()
+				guicmds.manageBooks.windows.clear_element_contents()
 				log("guicmds.manageBooks.windows.show_return_book_dialog","okay","Configured toplevel dialog for book return")
 			
 			def show_add_book_dialog():
@@ -288,9 +413,22 @@ class guicmds(): #Commands of GUI
 				guivars.frames.manageBooks.toplevel.rent_book.pack_forget()
 				guivars.frames.manageBooks.toplevel.return_book.pack_forget()
 				guivars.frames.manageBooks.toplevel.add_book.pack(pady=5,padx=5)
+				guivars.frames.manageBooks.toplevel.delete_book.pack_forget()
 				guivars.elements.manageBooks.dialog.title("Buch hinzufügen")
 				guivars.elements.manageBooks.dialog.deiconify()
+				guicmds.manageBooks.windows.clear_element_contents()
 				log("guicmds.manageBooks.windows.show_add_book_dialog","okay","Configured toplevel dialog for adding a new book")
+			
+			def show_delete_book_dialog():
+				log("guicmds.manageBooks.windows.show_delete_book_dialog","info","Configuring toplevel dialog for deleting a new book")
+				guivars.frames.manageBooks.toplevel.rent_book.pack_forget()
+				guivars.frames.manageBooks.toplevel.return_book.pack_forget()
+				guivars.frames.manageBooks.toplevel.add_book.pack_forget()
+				guivars.frames.manageBooks.toplevel.delete_book.pack(pady=5,padx=5)
+				guivars.elements.manageBooks.dialog.title("Buch löschen")
+				guivars.elements.manageBooks.dialog.deiconify()
+				guicmds.manageBooks.windows.clear_element_contents()
+				log("guicmds.manageBooks.windows.show_delete_book_dialog","okay","Configured toplevel dialog for deleting a new book")
 			
 			def hide_dialog():
 				log("guicmds.manageBooks.windows.hide_dialog","info","Hiding toplevel dialog")
@@ -349,7 +487,7 @@ class guicmds(): #Commands of GUI
 				log("guicmds.managePupils.getPupils","okay","List of pupils loaded")
 			except Exception as exc:
 				log("guicmds.managePupils.getPupils","error",f"Search for pupils failed ({exc})")
-				guivars.elements.managePupils.searchresults.insert("","end",values=("None","None","None"))
+				guivars.elements.managePupils.searchresults.insert("","end",values=("None","None","None","None","None","None",))
 		
 		def remall():
 			log("guicmds.managePupils.remall","info","Deleting all pupils stored in database")
@@ -357,6 +495,25 @@ class guicmds(): #Commands of GUI
 				db.loesche_alle_schueler()
 				log("guicmds.managePupils.remall","okay","Pupils deleted")
 			except Exception as exc: log("guicmds.managePupils.remall","error",f"Failed to delete all pupils from database ({exc})")
+			guicmds.managePupils.getPupils()
+		
+		def import_from_file():
+			log("guicmds.managePupils.import_from_file","info","Building up File selection window...")
+			filepath = filedialog.askopenfilename(title="Schüler aus CSV importieren",filetypes=[("CSV-Dateien","*.csv"),("Alle Dateien","*.*")])
+			log("guicmds.managePupils.import_from_file","okay","Filedialog closed")
+			log("guicmds.managePupils.import_from_file","debug",f"Selected file is {repr(filepath)}")
+			if filepath == "":
+				log("guicmds.managePupils.import_from_file","warn","No file was selected")
+				messagebox.showwarning("Information","Es wurde keine Datei ausgewählt")
+				return
+			log("guicmds.managePupils.import_from_file","info","Importing pupils from CSV file")
+			try:
+				db.lade_schueler_aus_csv(filepath)
+				log("guicmds.managePupils.import_from_file","okay","Pupils imported")
+			except Exception as exc:
+				log("guicmds.managePupils.import_from_file","error",f"Failed to import Pupils from CSV file ({exc})")
+				messagebox.showerror("Fehler","Schüler aus CSV Datei konnten nicht importiert werden")
+			log("guicmds.managePupils.import_from_file","info","Reloading Pupils list")
 			guicmds.managePupils.getPupils()
 	
 	class alerts():
@@ -440,12 +597,18 @@ class guiutils(): #Useful functions for GUI
 		guivars.elements.manageBooks.searchresults.heading("state",text="Status")
 		guivars.elements.manageBooks.searchresults.column("scrollbar",anchor=CENTER,width=2)
 	
-	def setupPupilSearch():
-		guivars.elements.managePupils.searchresults.column("name",anchor=CENTER,width=550)
+	def setupPupilSearch(): #("name","mail","address","phone","birth","class","scrollbar")
+		guivars.elements.managePupils.searchresults.column("name",anchor=CENTER,width=300)
 		guivars.elements.managePupils.searchresults.heading("name",text="Name")
-		guivars.elements.managePupils.searchresults.column("mail",anchor=CENTER,width=300)
+		guivars.elements.managePupils.searchresults.column("mail",anchor=CENTER,width=250)
 		guivars.elements.managePupils.searchresults.heading("mail",text="E-Mail Adresse")
-		guivars.elements.managePupils.searchresults.column("class",anchor=CENTER,width=100)
+		guivars.elements.managePupils.searchresults.column("address",anchor=CENTER,width=300)
+		guivars.elements.managePupils.searchresults.heading("address",text="Adresse")
+		guivars.elements.managePupils.searchresults.column("phone",anchor=CENTER,width=180)
+		guivars.elements.managePupils.searchresults.heading("phone",text="Telefon")
+		guivars.elements.managePupils.searchresults.column("birth",anchor=CENTER,width=130)
+		guivars.elements.managePupils.searchresults.heading("birth",text="Geburtsdatum")
+		guivars.elements.managePupils.searchresults.column("class",anchor=CENTER,width=80)
 		guivars.elements.managePupils.searchresults.heading("class",text="Klasse")
 		guivars.elements.managePupils.searchresults.column("scrollbar",anchor=CENTER,width=2)
 
@@ -482,7 +645,7 @@ def build_gui(title="Bücherverwaltung"):
 			"F10": lambda: log("window","okay","Detected button press on F10")
 		},
 		"managePupils": {
-			"F1": lambda: log("window","okay","Detected button press on F1"),
+			"F1": guicmds.managePupils.import_from_file,
 			"F2": lambda: log("window","okay","Detected button press on F2"),
 			"F3": guicmds.managePupils.remall,
 			"F4": lambda: log("window","okay","Detected button press on F4"),
@@ -584,12 +747,12 @@ def build_gui(title="Bücherverwaltung"):
 	guivars.frames.manageBooks.editbooks_frm = Frame(p,bg="#AE6D6D")
 	guivars.elements.manageBooks.addbook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="Buch hinzufügen",command=guicmds.manageBooks.windows.show_add_book_dialog) #command=lambda:log("addbook_btn","okay","Click event detected"))
 	guivars.elements.manageBooks.addbook_btn.grid(row=0,column=0,padx=6,pady=4)
-	guivars.elements.manageBooks.rembook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="Buch entfernen",command=lambda:log("rembook_btn","okay","Click event detected"))
+	guivars.elements.manageBooks.rembook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="Buch entfernen",command=guicmds.manageBooks.windows.show_delete_book_dialog) #command=lambda:log("rembook_btn","okay","Click event detected"))
 	guivars.elements.manageBooks.rembook_btn.grid(row=1,column=0,padx=6,pady=4)
 	guivars.elements.manageBooks.cnfbook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="  Buch bearbeiten  ",command=lambda:log("cnfbook_btn","okay","Click event detected"))
 	guivars.elements.manageBooks.cnfbook_btn.grid(row=2,column=0,padx=6,pady=4)
-	guivars.elements.manageBooks.rembook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="TEST SELECT",command=guicmds.manageBooks.get_selected)
-	guivars.elements.manageBooks.rembook_btn.grid(row=3,column=0,padx=6,pady=4)
+	#guivars.elements.manageBooks.rembook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="TEST SELECT",command=guicmds.manageBooks.get_selected)
+	#guivars.elements.manageBooks.rembook_btn.grid(row=3,column=0,padx=6,pady=4)
 	guivars.frames.manageBooks.editbooks_frm.grid(row=0,column=1)
 	guivars.frames.manageBooks.rentbooks_frm = Frame(p,bg="#6DAD73")
 	guivars.elements.manageBooks.rentbook_btn = Button(guivars.frames.manageBooks.rentbooks_frm,text="Buch ausleihen",command=guicmds.manageBooks.windows.show_rent_book_dialog) #command=lambda:log("rentbook_btn","okay","Click event detected"))
@@ -628,9 +791,9 @@ def build_gui(title="Bücherverwaltung"):
 	guivars.elements.managePupils.reload_btn.grid(row=1,column=0,columnspan=4,sticky="W",pady=2)
 	"""guivars.elements.managePupils.searchresults = Listbox(guivars.frames.managePupils.searchPupils,width=150,height=30,font=("Monospace",9))
 	guivars.elements.managePupils.searchresults.grid(row=2,column=0,sticky="W",columnspan=50)"""
-	guivars.elements.managePupils.searchresults = ttk.Treeview(guivars.frames.managePupils.searchPupils,columns=("name","mail","class","scrollbar"),selectmode="browse",show="headings",height=20)
+	guivars.elements.managePupils.searchresults = ttk.Treeview(guivars.frames.managePupils.searchPupils,columns=("name","mail","address","phone","birth","class","scrollbar"),selectmode="browse",show="headings",height=20)
 	guivars.elements.managePupils.sr_scrollbar = ttk.Scrollbar(guivars.elements.managePupils.searchresults,orient="vertical",command=guivars.elements.managePupils.searchresults.yview)
-	guivars.elements.managePupils.sr_scrollbar.place(x=936,y=25,height=400)
+	guivars.elements.managePupils.sr_scrollbar.place(x=1226,y=25,height=400)
 	guivars.elements.managePupils.searchresults.configure(yscrollcommand=guivars.elements.managePupils.sr_scrollbar.set)
 	guivars.elements.managePupils.searchresults.grid(row=2,column=0,sticky="W",columnspan=50)
 	guiutils.setupPupilSearch() #Setup columns of searchresults
@@ -638,7 +801,7 @@ def build_gui(title="Bücherverwaltung"):
 
 	log("init_gui","info","Configuring buttons for editing pupils")
 	guivars.frames.managePupils.editpupils_frm = Frame(p,bg="#C2AD76")
-	guivars.elements.managePupils.importpupils_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Importiere Schüler aus CSV",command=lambda:log("importpupils_btn","okay","Click event detected"))
+	guivars.elements.managePupils.importpupils_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Importiere Schüler aus CSV",command=guicmds.managePupils.import_from_file) #command=lambda:log("importpupils_btn","okay","Click event detected"))
 	guivars.elements.managePupils.importpupils_btn.grid(row=0,column=0,padx=6)
 	guivars.elements.managePupils.addpupil_btn = Button(guivars.frames.managePupils.editpupils_frm,text="Füge einzelnen Schüler hinzu",command=lambda:log("addpupil_btn","okay","Click event detected"))
 	guivars.elements.managePupils.addpupil_btn.grid(row=1,column=0,padx=6)
@@ -711,6 +874,7 @@ def window_mainloop():
 	log("window_mainloop","info","Introducing GUI window mainloop")
 	guivars.win.mainloop()
 	log("window_mainloop","info","Mainloop ended")
+	log("window_mainloop","okay","Mainloop ended")
 
 def window_close():
 	global logmode
