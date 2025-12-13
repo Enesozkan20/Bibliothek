@@ -13,7 +13,8 @@ if logmode.split("/")[0] == "html":
 	<title>GUI-Log of Bibliothek project</title>
 	<style>
 		body{background-color:black;font-family:Monospace}
-		button{font-size:11px;font-family:Monospace;background-color:black;color:white}
+		button{font-size:11px;font-family:Monospace;background-color:black;color:white;transition:all 0.15s}
+		span{transition:all 0.15s}
 	</style>
 	<script>
 		function highlightline(lineid) {
