@@ -146,7 +146,7 @@ class guicmds(): #Commands of GUI
 				else:
 					for elm in db.suche_buch(guivars.elements.manageBooks.search_ent.get()):
 						log("guicmds.manageBooks.list_searched_books","debug",f"New book found: {elm}")
-						guivars.elements.manageBooks.searchresults.insert("","end",values=(elm[2],elm[3],"UNKNOWN",elm[1],"UNKNOWN","UNKNOWN","",elm[0]))
+						guivars.elements.manageBooks.searchresults.insert("","end",values=(elm[2],elm[3],"UNKNOWN",elm[1],"UNKNOWN","UNKNOWN" if elm[5] == None else "Verfügbar" if elm[5] == True else "Ausgeliehen" if elm[5] == False else "INVAILID","",elm[0]))
 				log("guicmds.manageBooks.list_searched_books","okay","List of books with search keyword loaded")
 			except Exception as exc:
 				log("guicmds.manageBooks.list_searched_books","error",f"Search for books failed ({exc})")
@@ -189,6 +189,8 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.rentselbook_btn.grid(row=0,column=0)
 				guivars.elements.manageBooks.toplevel.rentscanbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.rentscanbook_btn","okay","Click event detected"))
 				guivars.elements.manageBooks.toplevel.rentscanbook_btn.grid(row=1,column=0)
+				guivars.elements.manageBooks.toplevel.rentloadpupil_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Schüler auswählen (Scannen)",command=lambda:log("rentloadpupil_btn","okay","Click event detected"),font=("Monospace",10),bg="red")
+				guivars.elements.manageBooks.toplevel.rentloadpupil_btn.grid(row=2,column=0)
 
 				#Configure information table for book information in rent frame
 				guivars.elements.manageBooks.toplevel.rentbook_dataframe = Frame(guivars.frames.manageBooks.toplevel.rent_book,bd=5,relief="ridge",bg="lightgray")
@@ -226,6 +228,8 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.returnselbook_btn.grid(row=0,column=0)
 				guivars.elements.manageBooks.toplevel.returnscanbook_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.returnscanbook_btn","okay","Click event detected"))
 				guivars.elements.manageBooks.toplevel.returnscanbook_btn.grid(row=1,column=0)
+				guivars.elements.manageBooks.toplevel.returnloadpupil_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Schüler auswählen (Scannen)",command=lambda:log("returnloadpupil_btn","okay","Click event detected"),font=("Monospace",10),bg="red")
+				guivars.elements.manageBooks.toplevel.returnloadpupil_btn.grid(row=2,column=0)
 
 				#Configure information table for book information in return frame
 				guivars.elements.manageBooks.toplevel.returnbook_dataframe = Frame(guivars.frames.manageBooks.toplevel.return_book,bd=5,relief="ridge",bg="lightgray")
@@ -349,6 +353,7 @@ class guicmds(): #Commands of GUI
 					guivars.elements.manageBooks.toplevel.rentbook_data_publishion.configure(text="")
 					guivars.elements.manageBooks.toplevel.rentbook_data_isbn.configure(text="")
 					guivars.elements.manageBooks.toplevel.rentbook_data_signature.configure(text="")
+					guivars.elements.manageBooks.toplevel.rentloadpupil_btn.configure(bg="red")
 					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book rent dialog cleared")
 				except Exception as exc:
 					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book rent dialog labels ({exc})")
@@ -360,6 +365,7 @@ class guicmds(): #Commands of GUI
 					guivars.elements.manageBooks.toplevel.returnbook_data_publishion.configure(text="")
 					guivars.elements.manageBooks.toplevel.returnbook_data_isbn.configure(text="")
 					guivars.elements.manageBooks.toplevel.returnbook_data_signature.configure(text="")
+					guivars.elements.manageBooks.toplevel.returnloadpupil_btn.configure(bg="red")
 					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book return dialog cleared")
 				except Exception as exc:
 					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book return dialog labels ({exc})")
@@ -483,8 +489,9 @@ class guicmds(): #Commands of GUI
 					for elm in tstlst:
 						guivars.elements.managePupils.searchresults.insert("","end",values=elm)
 				else:
-					for elm in db.schueler_liste():
-						guivars.elements.managePupils.searchresults.insert("","end",values=elm)
+					for elm in db.suche_schueler(""):
+						log("guicmds.managePupils.getPupils","debug",f"Found new pupil: {elm}")
+						guivars.elements.managePupils.searchresults.insert("","end",values=(elm[1],elm[4],"UNKNOWN","UNKNOWN",elm[2]))
 				log("guicmds.managePupils.getPupils","okay","List of pupils loaded")
 			except Exception as exc:
 				log("guicmds.managePupils.getPupils","error",f"Search for pupils failed ({exc})")
@@ -599,12 +606,12 @@ class guiutils(): #Useful functions for GUI
 		guivars.elements.manageBooks.searchresults.column("scrollbar",anchor=CENTER,width=2)
 	
 	def setupPupilSearch(): #("name","mail","address","phone","birth","class","scrollbar")
-		guivars.elements.managePupils.searchresults.column("name",anchor=CENTER,width=300)
+		guivars.elements.managePupils.searchresults.column("name",anchor=CENTER,width=250)
 		guivars.elements.managePupils.searchresults.heading("name",text="Name")
-		guivars.elements.managePupils.searchresults.column("mail",anchor=CENTER,width=250)
+		guivars.elements.managePupils.searchresults.column("mail",anchor=CENTER,width=300)
 		guivars.elements.managePupils.searchresults.heading("mail",text="E-Mail Adresse")
-		guivars.elements.managePupils.searchresults.column("address",anchor=CENTER,width=300)
-		guivars.elements.managePupils.searchresults.heading("address",text="Adresse")
+		"""guivars.elements.managePupils.searchresults.column("address",anchor=CENTER,width=300)
+		guivars.elements.managePupils.searchresults.heading("address",text="Adresse")"""
 		guivars.elements.managePupils.searchresults.column("phone",anchor=CENTER,width=180)
 		guivars.elements.managePupils.searchresults.heading("phone",text="Telefon")
 		guivars.elements.managePupils.searchresults.column("birth",anchor=CENTER,width=130)
@@ -792,9 +799,9 @@ def build_gui(title="Bücherverwaltung"):
 	guivars.elements.managePupils.reload_btn.grid(row=1,column=0,columnspan=4,sticky="W",pady=2)
 	"""guivars.elements.managePupils.searchresults = Listbox(guivars.frames.managePupils.searchPupils,width=150,height=30,font=("Monospace",9))
 	guivars.elements.managePupils.searchresults.grid(row=2,column=0,sticky="W",columnspan=50)"""
-	guivars.elements.managePupils.searchresults = ttk.Treeview(guivars.frames.managePupils.searchPupils,columns=("name","mail","address","phone","birth","class","scrollbar"),selectmode="browse",show="headings",height=20)
+	guivars.elements.managePupils.searchresults = ttk.Treeview(guivars.frames.managePupils.searchPupils,columns=("name","mail","phone","birth","class","scrollbar"),selectmode="browse",show="headings",height=20)
 	guivars.elements.managePupils.sr_scrollbar = ttk.Scrollbar(guivars.elements.managePupils.searchresults,orient="vertical",command=guivars.elements.managePupils.searchresults.yview)
-	guivars.elements.managePupils.sr_scrollbar.place(x=1226,y=25,height=400)
+	guivars.elements.managePupils.sr_scrollbar.place(x=926,y=25,height=400)
 	guivars.elements.managePupils.searchresults.configure(yscrollcommand=guivars.elements.managePupils.sr_scrollbar.set)
 	guivars.elements.managePupils.searchresults.grid(row=2,column=0,sticky="W",columnspan=50)
 	guiutils.setupPupilSearch() #Setup columns of searchresults
