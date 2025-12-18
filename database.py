@@ -2,7 +2,7 @@ import sqlite3
 import csv
 from datetime import datetime, timedelta
 
-class Error(): ...
+class Error(Exception): ...
 def erstelle_datenbank():
     conn = sqlite3.connect('bibliothek.db')
     c = conn.cursor() 
@@ -181,6 +181,18 @@ def leihe_buch_aus(buch_id, schueler_id):
    finally:
        conn.close()
 ## SCHUELER
+
+def suche_schueler(suchebegriff):
+    conn = sqlite3.connect('bibliothek.db')
+    c = conn.cursor()
+    
+    c.execute('''SELECT * FROM schueler WHERE name LIKE ? OR klasse LIKE ? OR email LIKE ?''',(f'%{suchebegriff}%',f'%{suchebegriff}%',f'%{suchebegriff}%'))
+    
+    schueler= c.fetchall()
+    conn.commit()
+    conn.close()
+    return schueler
+
 def loesche_alle_schueler():      
     conn=sqlite3.connect('bibliothek.db')
     c=conn.cursor()
@@ -236,5 +248,9 @@ if __name__ == "__main__":
     ergebnisse = suche_buch("Python")
     for buch in ergebnisse:
         print(buch)
+        
+    ergebnisse = suche_schueler("Ali")
+    for schueler in ergebnisse:
+        print(schueler)
     
     
