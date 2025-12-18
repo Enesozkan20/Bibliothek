@@ -13,7 +13,7 @@ def erstelle_datenbank():
                   titel TEXT,
                   autor TEXT,
                   barcode TEXT UNIQUE,
-                  verfuegbar BOOLEAN)
+                  verfuegbar BOOLEAN)w
               ''')
     
     c.execute(''' CREATE TABLE IF NOT EXISTS schueler
@@ -114,10 +114,39 @@ def loesche_buch(buch_id):
        
    except Exception as e:
        raise Error(f"Deletion error: {e}")
-   
     
    finally: 
        conn.close()
+       
+def bearbeite_buch(buch_id, isbn=None, titel=None, autor=None, barcode=None, signatur=None):
+      conn = sqlite3.connect('bibliothek.db')
+      c = conn.cursor()  
+   
+    try: 
+        uptades=[]
+        values=[]
+        
+        if isbn:
+            uptades.append("isbn= ?")
+            values.append(isbn)
+        if titel:
+            uptades.append("titel= ?")
+            values.append(titel)
+        if autor:
+            uptades.append("autor= ?")
+            values.append(autor)
+        if barcode:
+            uptades.append("barcode= ?")
+            values.append(barcode)
+        if signatur:
+            uptades.append("signatur= ?")
+            values.append(signatur)
+            
+        if not updates:
+            raise Error("Das Buch konnte nicht finden")   
+        
+    
+    except:
 
 def hole_buch_status(buch_id):
     conn=sqlite3.connect('bibliothek.db')
