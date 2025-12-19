@@ -119,35 +119,48 @@ def loesche_buch(buch_id):
        conn.close()
        
 def bearbeite_buch(buch_id, isbn=None, titel=None, autor=None, barcode=None, signatur=None):
-      conn = sqlite3.connect('bibliothek.db')
-      c = conn.cursor()  
+    conn = sqlite3.connect('bibliothek.db')
+    c = conn.cursor()  
    
     try: 
-        uptades=[]
+        updates=[]
         values=[]
         
         if isbn:
-            uptades.append("isbn= ?")
+            updates.append("isbn= ?")
             values.append(isbn)
         if titel:
-            uptades.append("titel= ?")
+            updates.append("titel= ?")
             values.append(titel)
         if autor:
-            uptades.append("autor= ?")
+            updates.append("autor= ?")
             values.append(autor)
         if barcode:
-            uptades.append("barcode= ?")
+            updates.append("barcode= ?")
             values.append(barcode)
         if signatur:
-            uptades.append("signatur= ?")
+            updates.append("signatur = ?")
             values.append(signatur)
-            
+              
         if not updates:
             raise Error("Das Buch konnte nicht finden")   
         
+        values.append(buch_id)
+        
+        query =f"UPDATE buecher SET {', '.join(updates)} WHERE id = ?"
+        c.execute(query,values)
+        conn.commit()
+        print("Buchinformationen erfolgreich aktualisiert")
+        return True 
     
-    except:
-
+    except sqlite3.IntegrityError:
+        raise Error("Fehler: Barcode bereits vergeben!")
+    except Exception as e:
+        raise Error(f"Aktualisierungsfehler: {e}")
+  
+    finally:
+        conn.close()
+        
 def hole_buch_status(buch_id):
     conn=sqlite3.connect('bibliothek.db')
     c=conn.cursor()
@@ -177,6 +190,18 @@ def hole_buch_status(buch_id):
     finally:
         conn.close()
 
+def aktualisiere_buch_status(buch_id):
+    conn = sqlite3.connect('bibliothek.db')
+    c = conn.cursor()
+    try:
+        status=hole_buch_status(buch_id)
+        c.execute("UPDATE buecher SET status = ? WHERE id = ?", (status, buch_id))
+        conn.commit()
+        return status
+    finally:
+        conn.close() 
+        
+               
 def leihe_buch_aus(buch_id, schueler_id):
    conn=sqlite3.connect('bibliothek.db')
    c=conn.cursor()
@@ -254,7 +279,7 @@ def loesche_schueler(schueler_id):
         if aktive_ausleihen > 0:
             raise Error(f"Der Student hat {aktive_ausleihen} aktive Ausleihe.")
 
-        c.execute("DELETE FROM schueler WHERe id = ?")
+        c.execute("DELETE FROM schueler WHERE id = ?")
         conn.commit()
         print("Schüler gelöscht")
         return True
@@ -265,6 +290,15 @@ def loesche_schueler(schueler_id):
     
     finally:
         conn.close()  
+# Buch zurückgeben 
+def gebe_buch_zurueck(buch_id):
+    conn = sqlite3.connect('bibliothek.db')
+    c = conn.cursor()      
+    
+    try:
+        c.execute("SELECT id FROM ausleihen WHERE buch_id = ? AND rueckgabedatum IS NULL", (buch_id,))
+        ausleihe=c.fetchone()
+        
         
 if __name__ == "__main__":
     erstelle_datenbank()
@@ -281,5 +315,3 @@ if __name__ == "__main__":
     ergebnisse = suche_schueler("Ali")
     for schueler in ergebnisse:
         print(schueler)
-    
-    
