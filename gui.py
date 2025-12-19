@@ -71,11 +71,14 @@ from tkinter import *
 from tkinter import ttk
 from tkinter import filedialog
 from tkinter import messagebox
+from tkinter import simpledialog
+import generatebarcode as barcodegen
 try: import database as db
 except Exception as exc: log("import","warn",f"Could not import module database.py ({exc})")
 
 class guivars(): #Variables & Widgets of GUI
 	test = False
+	debug = True
 	class pages():
 		pages_tp = {"Bücher verwalten":"manageBooks","Schüler verwalten":"managePupils","Meldungen":"Alerts"}
 		pages_pt = {"manageBooks":"Bücher verwalten","managePupils":"Schüler verwalten","Alerts":"Meldungen"}
@@ -189,7 +192,7 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.rentselbook_btn.grid(row=0,column=0)
 				guivars.elements.manageBooks.toplevel.rentscanbook_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.rentscanbook_btn","okay","Click event detected"))
 				guivars.elements.manageBooks.toplevel.rentscanbook_btn.grid(row=1,column=0)
-				guivars.elements.manageBooks.toplevel.rentloadpupil_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Schüler auswählen (Scannen)",command=lambda:log("rentloadpupil_btn","okay","Click event detected"),font=("Monospace",10),bg="red")
+				guivars.elements.manageBooks.toplevel.rentloadpupil_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_buttonframe,text="Schüler auswählen (Scannen)",command=guicmds.manageBooks.windows.load_pupil_for_rent) #command=lambda:log("rentloadpupil_btn","okay","Click event detected"),font=("Monospace",10),bg="red")
 				guivars.elements.manageBooks.toplevel.rentloadpupil_btn.grid(row=2,column=0)
 
 				#Configure information table for book information in rent frame
@@ -216,6 +219,7 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.rentbook_data_isbn.grid(row=3,column=1,sticky="W")
 				guivars.elements.manageBooks.toplevel.rentbook_data_signature = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_data_signature.grid(row=4,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.rentbook_data_pupilbarcode = Label(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="")
 				
 				guivars.elements.manageBooks.toplevel.rentbook_final_btn = Button(guivars.elements.manageBooks.toplevel.rentbook_dataframe,text="Buch ausleihen!",command=lambda:log("toplevel.rentbook_final_btn","okay","Click event detected"),font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.rentbook_final_btn.grid(row=5,column=0,columnspan=2)
@@ -228,7 +232,7 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.returnselbook_btn.grid(row=0,column=0)
 				guivars.elements.manageBooks.toplevel.returnscanbook_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Buchdaten mit Barcode laden",font=("Monospace",10),command=lambda:log("toplevel.returnscanbook_btn","okay","Click event detected"))
 				guivars.elements.manageBooks.toplevel.returnscanbook_btn.grid(row=1,column=0)
-				guivars.elements.manageBooks.toplevel.returnloadpupil_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Schüler auswählen (Scannen)",command=lambda:log("returnloadpupil_btn","okay","Click event detected"),font=("Monospace",10),bg="red")
+				guivars.elements.manageBooks.toplevel.returnloadpupil_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_buttonframe,text="Schüler auswählen (Scannen)",command=guicmds.manageBooks.windows.load_pupil_for_return) #command=lambda:log("returnloadpupil_btn","okay","Click event detected"),font=("Monospace",10),bg="red")
 				guivars.elements.manageBooks.toplevel.returnloadpupil_btn.grid(row=2,column=0)
 
 				#Configure information table for book information in return frame
@@ -255,6 +259,7 @@ class guicmds(): #Commands of GUI
 				guivars.elements.manageBooks.toplevel.returnbook_data_isbn.grid(row=3,column=1,sticky="W")
 				guivars.elements.manageBooks.toplevel.returnbook_data_signature = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None",bg="gray",width=38,font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.returnbook_data_signature.grid(row=4,column=1,sticky="W")
+				guivars.elements.manageBooks.toplevel.returnbook_data_pupilbarcode = Label(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="None")
 				
 				guivars.elements.manageBooks.toplevel.returnbook_final_btn = Button(guivars.elements.manageBooks.toplevel.returnbook_dataframe,text="Buch zurückgeben!",command=lambda:log("toplevel.returnbook_final_btn","okay","Click event detected"),font=("Monospace",10))
 				guivars.elements.manageBooks.toplevel.returnbook_final_btn.grid(row=5,column=0,columnspan=2)
@@ -354,6 +359,7 @@ class guicmds(): #Commands of GUI
 					guivars.elements.manageBooks.toplevel.rentbook_data_isbn.configure(text="")
 					guivars.elements.manageBooks.toplevel.rentbook_data_signature.configure(text="")
 					guivars.elements.manageBooks.toplevel.rentloadpupil_btn.configure(bg="red")
+					guivars.elements.manageBooks.toplevel.rentbook_data_pupilbarcode.configure(text="")
 					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book rent dialog cleared")
 				except Exception as exc:
 					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book rent dialog labels ({exc})")
@@ -366,6 +372,7 @@ class guicmds(): #Commands of GUI
 					guivars.elements.manageBooks.toplevel.returnbook_data_isbn.configure(text="")
 					guivars.elements.manageBooks.toplevel.returnbook_data_signature.configure(text="")
 					guivars.elements.manageBooks.toplevel.returnloadpupil_btn.configure(bg="red")
+					guivars.elements.manageBooks.toplevel.returnbook_data_pupilbarcode.configure(text="")
 					log("guicmds.manageBooks.windows.clear_element_contents","okay","Labels of book return dialog cleared")
 				except Exception as exc:
 					log("guicmds.manageBooks.windows.clear_element_contents","error",f"Failed to clear book return dialog labels ({exc})")
@@ -477,6 +484,47 @@ class guicmds(): #Commands of GUI
 				for i in range(len(cnf)):
 					cnf[i].configure(text=data[i])
 				log("guicmds.manageBooks.windows.load_bookdata_for_return_selection","okay","Bookdata loaded")
+			
+			def load_pupil_for_rent():
+				log("guicmds.managePupils.load_pupil_for_rent","info","Requesting user input for barcode")
+				try:
+					barcode_txt = simpledialog.askstring("Schüler auswählen","Bitte Barcode eingeben")
+					if barcode_txt == None: raise Exception("barcode_txt is None")
+				except Exception as exc:
+					log("guicmds.managePupils.load_pupil_for_rent","error",f"Failed to load barcode from dialog window ({exc})")
+					messagebox.showerror("Fehler",f"Der Barcode konnte nicht gelesen werden ({exc})")
+					return
+				log("guicmds.managePupils.load_pupil_for_rent","okay",f"Barcode loaded ({repr(barcode_txt)})")
+				log("guicmds.managePupils.load_pupil_for_rent","info","Saving pupil data")
+				#TODO: Search for student and look if it is vailid
+				if barcodegen.validify_barcode(barcode_txt) != True:
+					log("guicmds.managePupils.load_pupil_for_rent","error","Entered barcode is invailid")
+					messagebox.showerror("Fehler","Ungültiger Barcode erkannt")
+					return
+				guivars.elements.manageBooks.toplevel.rentbook_data_pupilbarcode.configure(text=barcode_txt)
+				guivars.elements.manageBooks.toplevel.rentloadpupil_btn.configure(bg="lime")
+				log("guicmds.managePupils.load_pupil_for_rent","okay","Pupil loaded")
+			
+			def load_pupil_for_return():
+				log("guicmds.managePupils.load_pupil_for_return","info","Requesting user input for barcode")
+				try:
+					barcode_txt = simpledialog.askstring("Schüler auswählen","Bitte Barcode eingeben")
+					if barcode_txt == None: raise Exception("barcode_txt is None")
+				except Exception as exc:
+					log("guicmds.managePupils.load_pupil_for_return","error",f"Failed to load barcode from dialog window ({exc})")
+					messagebox.showerror("Fehler",f"Der eingegebene Barcode konnte nicht gelesen werden ({exc})")
+					return
+				log("guicmds.managePupils.load_pupil_for_return","okay",f"Barcode loaded ({repr(barcode_txt)})")
+				log("guicmds.managePupils.load_pupil_for_return","info","Saving pupil data")
+				#TODO: Search for student and look if it is vailid
+				if barcodegen.validify_barcode(barcode_txt) != True:
+					log("guicmds.managePupils.load_pupil_for_return","error","Entered barcode is invailid")
+					messagebox.showerror("Fehler","Ungültiger Barcode erkannt")
+					return
+				guivars.elements.manageBooks.toplevel.returnbook_data_pupilbarcode.configure(text=barcode_txt)
+				guivars.elements.manageBooks.toplevel.returnloadpupil_btn.configure(bg="lime")
+				log("guicmds.managePupils.load_pupil_for_return","okay","Pupil loaded")
+
 
 	class managePupils():
 		def getPupils():
@@ -715,6 +763,9 @@ def build_gui(title="Bücherverwaltung"):
 	#set Title of window
 	log("init_gui","info","Changing title")
 	guivars.win.title(title if not guivars.test else title + " (Test mode active)") #Configure title of window, but if test mode is active, add "(Test)" and the end
+	if guivars.debug:
+		log("init_gui","warn","This program currently runs in 'debug' Mode (resulting in added GUI elements, etc.)")
+		change_info_label_content(key="debugmode",text="Debug mode active",color="blue")
 	if guivars.test:
 		log("init_gui","warn","This program currently runs in 'test' Mode (resulting in faked databases, etc.)")
 		change_info_label_content(key="testmode",text="Test mode active",color="darkorange")
@@ -759,8 +810,9 @@ def build_gui(title="Bücherverwaltung"):
 	guivars.elements.manageBooks.rembook_btn.grid(row=1,column=0,padx=6,pady=4)
 	guivars.elements.manageBooks.cnfbook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="  Buch bearbeiten  ",command=lambda:log("cnfbook_btn","okay","Click event detected"))
 	guivars.elements.manageBooks.cnfbook_btn.grid(row=2,column=0,padx=6,pady=4)
-	#guivars.elements.manageBooks.rembook_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="TEST SELECT",command=guicmds.manageBooks.get_selected)
-	#guivars.elements.manageBooks.rembook_btn.grid(row=3,column=0,padx=6,pady=4)
+	if guivars.debug:
+		guivars.elements.manageBooks.testbooksel_btn = Button(guivars.frames.manageBooks.editbooks_frm,text="TEST SELECT",command=guicmds.manageBooks.get_selected)
+		guivars.elements.manageBooks.testbooksel_btn.grid(row=3,column=0,padx=6,pady=4)
 	guivars.frames.manageBooks.editbooks_frm.grid(row=0,column=1)
 	guivars.frames.manageBooks.rentbooks_frm = Frame(p,bg="#6DAD73")
 	guivars.elements.manageBooks.rentbook_btn = Button(guivars.frames.manageBooks.rentbooks_frm,text="Buch ausleihen",command=guicmds.manageBooks.windows.show_rent_book_dialog) #command=lambda:log("rentbook_btn","okay","Click event detected"))
