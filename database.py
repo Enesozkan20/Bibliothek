@@ -175,7 +175,7 @@ def hole_buch_status(buch_id):
         if result[0]:
             return "Verfügbar"
         
-        c.execute("SELECT faellig_am FROM ausleihen WHERE buch_id = ? AND ruecgabedatum IS NULL", (buch_id,))
+        c.execute("SELECT faellig_am FROM ausleihen WHERE buch_id = ? AND rueckgabedatum IS NULL", (buch_id,))
         ausleihe=c.fetchone()
         
         if ausleihe:
