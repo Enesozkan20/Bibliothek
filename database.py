@@ -290,6 +290,44 @@ def loesche_schueler(schueler_id):
     
     finally:
         conn.close()  
+        
+        
+#Buch ausleihen 
+def leihe_buch_aus(buch_id, schueler_id):
+    
+    conn = sqlite3.connect('bibliothek.db')
+    c = conn.cursor()
+    
+    try:
+        c.execute("SELECT verfuegbar FROM buecher WHERE id = ?", (buch_id,))
+        buch = c.fetchone()
+        
+        if not buch or not buch[0]:
+            raise Error("Buch ist nicht verfügbar")
+        
+        c.execute("SELECT id FROM schueler WHERE id = ?", (schueler_id,))
+        
+        if not c.fetchone():
+            raise Error("Schüler nicht gefunden")
+         
+        gestern=datetime.today().date()- timedelta(days=1)
+        rueckgabedatum= gestern+ timedelta(days=13)
+        
+        c.execute('''INSERT INTO ausleihen (buch_id, schueler_id, ausleihdatum, faellig_am)
+                     VALUES (?, ?, ?, ?)''', 
+                  (buch_id, schueler_id, gestern, rueckgabedatum))
+        
+        # Markiere das Buch als unverfügbar
+        c.execute("UPDATE buecher SET verfuegbar = 0 WHERE id = ?")
+        
+        conn.commit()
+        print(f"Das Buch wurde ausgeliehen! Rückgabe: {rueckgabedatum}")
+        return True 
+     
+    except Exception as e:
+        raise Error(f"Fehler beim Ausleihen: {e}")
+    finally:
+        conn.close()
 # Buch zurückgeben 
 def gebe_buch_zurueck(buch_id):
     conn = sqlite3.connect('bibliothek.db')
@@ -315,6 +353,7 @@ def gebe_buch_zurueck(buch_id):
         raise Error(f"Rücknahmfehler: {e}")
     finally:
         conn.close()
+        
 if __name__ == "__main__":
     erstelle_datenbank()
     
