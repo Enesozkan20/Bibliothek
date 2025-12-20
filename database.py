@@ -299,7 +299,22 @@ def gebe_buch_zurueck(buch_id):
         c.execute("SELECT id FROM ausleihen WHERE buch_id = ? AND rueckgabedatum IS NULL", (buch_id,))
         ausleihe=c.fetchone()
         
+        if not ausleihe:
+         raise Error("Aktive Leihbuchung nicht gefunden.")
+    
+    # Rückgabedatum aktualisieren    
+        gestern=datetime.today().date()- timedelta(days=1)
+        c.execute('''UPDATE ausleihen SET rueckgabedatum = ? 
+                     WHERE buch_id = ? AND rueckgabedatum IS NULL''', 
+                  (gestern, buch_id)) 
         
+    # Markier das Buch als verfügbar    
+        c.execute("UPDATE buecher SET verfuegbar = 1 WHERE id = ?,"(buch_id,))
+        
+    except Exception as e:
+        raise Error(f"Rücknahmfehler: {e}")
+    finally:
+        conn.close()
 if __name__ == "__main__":
     erstelle_datenbank()
     
