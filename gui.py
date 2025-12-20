@@ -77,7 +77,7 @@ try: import database as db
 except Exception as exc: log("import","warn",f"Could not import module database.py ({exc})")
 
 class guivars(): #Variables & Widgets of GUI
-	test = False
+	test = True
 	debug = True
 	class pages():
 		pages_tp = {"Bücher verwalten":"manageBooks","Schüler verwalten":"managePupils","Meldungen":"Alerts"}
@@ -149,7 +149,10 @@ class guicmds(): #Commands of GUI
 				else:
 					for elm in db.suche_buch(guivars.elements.manageBooks.search_ent.get()):
 						log("guicmds.manageBooks.list_searched_books","debug",f"New book found: {elm}")
-						guivars.elements.manageBooks.searchresults.insert("","end",values=(elm[2],elm[3],"UNKNOWN",elm[1],"UNKNOWN","UNKNOWN" if elm[5] == None else "Verfügbar" if elm[5] == True else "Ausgeliehen" if elm[5] == False else "INVAILID","",elm[0]))
+						status = db.hole_buch_status(elm[0])
+						if status == "Nicht gefunden": status = "UNKNOWN"
+						else: status = status.split()[-1:]
+						guivars.elements.manageBooks.searchresults.insert("","end",values=(elm[2],elm[3],"UNKNOWN",elm[1],"UNKNOWN",status,"",elm[0]))
 				log("guicmds.manageBooks.list_searched_books","okay","List of books with search keyword loaded")
 			except Exception as exc:
 				log("guicmds.manageBooks.list_searched_books","error",f"Search for books failed ({exc})")
@@ -580,12 +583,29 @@ class guicmds(): #Commands of GUI
 				if guivars.test:
 					tstlst = []
 					for i in range(200): tstlst.append(("UNKNOWN",f"Alerttext of alert message {i}"))
+					alerts = 0
 					for elm in tstlst:
-						if elm not in guivars.user.read_alerts: guivars.elements.alerts.searchresults.insert("","end",values=elm)
+						if elm not in guivars.user.read_alerts:
+							guivars.elements.alerts.searchresults.insert("","end",values=elm)
+							alerts += 1
+					log("guicmds.alerts.getAlerts","debug",f"{alerts} Alert(-s) found")
+					if alerts == 0: guivars.elements.alerts.searchresults.insert("","end",values=["UNKNOWN","Keine Meldungen vorhanden"])
+				else:
+					alerts = 0
+					for elm in db.suche_buch(""):
+						status = db.hole_buch_status(elm[0])
+						texts = {"Rückgabe überfällig":("ABG. ÜBERF.",f"Die Abgabe von Buch {repr(elm[2])} ist übefällig","")}
+						try:
+							if texts[status] not in guivars.user.read_alerts:
+								guivars.elements.alerts.searchresults.insert("","end",values=texts[status])
+								alerts += 1
+						except KeyError: pass
+					log("guicmds.alerts.getAlerts","debug",f"{alerts} Alert(-s) found")
+					if alerts == 0: guivars.elements.alerts.searchresults.insert("","end",values=["UNKNOWN","Keine Meldungen vorhanden"])
 				log("guicmds.alerts.getAlerts","okay","Alerts loaded into Listbox")
 			except Exception as exc:
 				log("guicmds.alerts.getAlerts","error",f"Loading alerts failed ({exc})")
-				guivars.elements.managePupils.searchresults.insert("","end",values=("UNKNOWN","ERROR"))
+				guivars.elements.alerts.searchresults.insert("","end",values=("UNKNOWN","ERROR"))
 		
 		def getAlertsAmt():
 			log("guicmds.alerts.getAlertsAmt","info","Loading amount of alerts...")
@@ -599,6 +619,13 @@ class guicmds(): #Commands of GUI
 						if elm not in guivars.user.read_alerts: cnt += 1
 					return cnt
 					#return len(tstlst)
+				else:
+					alerts = guivars.elements.alerts.searchresults.get_children()
+					cnt = len(alerts)
+					if cnt == 1 and guivars.elements.alerts.searchresults.item(alerts[0],"values") == ("UNKNOWN","Keine Meldungen vorhanden",""): cnt = 0
+					for elm in alerts:
+						if guivars.elements.alerts.searchresults.item(elm,"values") not in guivars.user.read_alerts: cnt += 1
+					log("guicmds.alerts.getAlertsAmt","okay",f"Amount of alerts loaded ({cnt})")
 			except Exception as exc:
 				log("guicmds.alerts.getAlertsAmt","error",f"Loading amount of alerts failed ({exc})")
 			return 0
