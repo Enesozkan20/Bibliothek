@@ -223,7 +223,7 @@ def leihe_buch_aus(buch_id, schueler_id):
         
         c.execute("INSERT INTO ausleihen (buch_id, schueler_id, ausleihdatum, faellig_am) VALUES(?,?,?,?)", (buch_id, schueler_id, gestern, rueckgabedatum))
         
-        c.execute("UPDATE buecher SET verfuegbar = 0 WHERE id=?," (buch_id))
+        c.execute("UPDATE buecher SET verfuegbar = 0 WHERE id=?", (buch_id,))
         conn.commit()
         
         print(f"Das Buch wurde erfolgreich zurückgegeben. Rückgabe:{rueckgabedatum}")
